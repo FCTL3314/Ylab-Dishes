@@ -1,15 +1,16 @@
+from typing import Optional
+from uuid import UUID, uuid4
 from sqlmodel import Field, Relationship, SQLModel
 
 
 class MenuBase(SQLModel):
-    id: int
-    name: str
+    id: UUID
+    title: str
+    description: str
 
 
 class Menu(MenuBase, table=True):
-    id: int = Field(primary_key=True)
-    name: str
-    description: str
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
 
     submenus: list["Submenu"] = Relationship(back_populates="menu")
 
@@ -19,14 +20,14 @@ class MenuWithNestedModels(MenuBase):
 
 
 class SubmenuBase(SQLModel):
-    id: int
-    name: str
+    id: UUID
+    title: str
+    description: str
 
 
 class Submenu(SubmenuBase, table=True):
-    id: int = Field(primary_key=True)
-    name: str
-    menu_id: int = Field(foreign_key="menu.id")
+    id: Optional[UUID] = Field(default=uuid4(), primary_key=True)
+    menu_id: UUID = Field(foreign_key="menu.id")
 
     menu: Menu = Relationship(back_populates="submenus")
 
