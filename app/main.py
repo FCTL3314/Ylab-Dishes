@@ -1,18 +1,15 @@
-from fastapi import FastAPI
-from sqlmodel import Session
+from fastapi import FastAPI, APIRouter
 
-from app.db import ActiveSession
-from app.dish.models import Menu, Submenu, SubmenuWithNestedModels
+from app.dish.routes import router as dish_router
 
 app = FastAPI()
+router = APIRouter(prefix="/api/v1")
 
 
-@app.get("/ping", response_model=SubmenuWithNestedModels)
-def index(session: Session = ActiveSession):
-    menu = Menu(name="Test")
-    session.add(menu)
-    session.commit()
-    submenu = Submenu(name="TestSubMenu", menu_id=menu.id)
-    session.add(submenu)
-    session.commit()
-    return submenu
+@router.get("/ping")
+def ping():
+    return {"msg": "pong"}
+
+
+router.include_router(dish_router)
+app.include_router(router)

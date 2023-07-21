@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class MenuBase(SQLModel):
@@ -7,8 +7,9 @@ class MenuBase(SQLModel):
 
 
 class Menu(MenuBase, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
     name: str
+    description: str
 
     submenus: list["Submenu"] = Relationship(back_populates="menu")
 
@@ -23,9 +24,9 @@ class SubmenuBase(SQLModel):
 
 
 class Submenu(SubmenuBase, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
     name: str
-    menu_id: int = Field(default=None, foreign_key="menu.id")
+    menu_id: int = Field(foreign_key="menu.id")
 
     menu: Menu = Relationship(back_populates="submenus")
 
