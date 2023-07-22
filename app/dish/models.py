@@ -35,7 +35,7 @@ class SubmenuBase(SQLModel):
 
 class Submenu(SubmenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    menu_id: UUID = Field(foreign_key="menu.id")
+    menu_id: Optional[UUID] = Field(default=None, foreign_key="menu.id")
 
     menu: Menu = Relationship(back_populates="submenus")
     dishes: list["Dish"] = Relationship(back_populates="submenu")
@@ -58,6 +58,6 @@ class DishBase(SQLModel):
 
 class Dish(DishBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    submenu_id: UUID = Field(foreign_key="submenu.id")
+    submenu_id: Optional[UUID] = Field(default=None, foreign_key="submenu.id")
 
     submenu: Submenu = Relationship(back_populates="dishes")
