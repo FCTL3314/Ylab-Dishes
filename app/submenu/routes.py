@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 
 from app.db import ActiveSession
 from app.menu.routes import MENU_NOT_FOUND_MESSAGE, get_menu_by_id_query
-from app.models import Menu, Submenu
+from app.models import Menu, Submenu, SubmenuResponse
 from app.utils import get_object_or_404
 
 router = APIRouter()
@@ -25,7 +25,7 @@ def get_submenu_query(menu_id, submenu_id):
     )
 
 
-@router.get("/{submenu_id}/")
+@router.get("/{submenu_id}/", response_model=SubmenuResponse)
 def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
     query = get_submenu_query(menu_id, submenu_id)
     submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
@@ -36,17 +36,20 @@ def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveS
     }
 
 
-@router.get("/", response_model=list[Submenu])
+@router.get("/", response_model=list[SubmenuResponse])
 def submenu_list(menu_id: UUID, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id),
         session,
         MENU_NOT_FOUND_MESSAGE,
     )
-    return menu.submenus
+    return [
+        {**submenu.dict(), "dishes_count": submenu.dishes_count}
+        for submenu in menu.submenus
+    ]
 
 
-@router.post("/", response_model=Submenu, status_code=HTTPStatus.CREATED)
+@router.post("/", response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
 def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id),
@@ -60,7 +63,7 @@ def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSes
     return submenu
 
 
-@router.patch("/{submenu_id}/")
+@router.patch("/{submenu_id}/", response_model=SubmenuResponse)
 def submenu_patch(
     menu_id: UUID,
     submenu_id: UUID,

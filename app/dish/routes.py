@@ -14,7 +14,7 @@ router = APIRouter()
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
-@router.get("/{dish_id}/")
+@router.get("/{dish_id}/", response_model=Dish)
 def dish_retrieve(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
@@ -59,7 +59,7 @@ def dish_create(
     return dish
 
 
-@router.patch("/{dish_id}/")
+@router.patch("/{dish_id}/", response_model=Dish)
 def dish_patch(
     menu_id: UUID,
     submenu_id: UUID,

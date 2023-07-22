@@ -12,6 +12,11 @@ class MenuBase(SQLModel):
     description: str
 
 
+class MenuResponse(MenuBase):
+    submenus_count: int
+    dishes_count: int
+
+
 class Menu(MenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
 
@@ -36,6 +41,10 @@ class SubmenuBase(SQLModel):
     id: UUID
     title: str
     description: str
+
+
+class SubmenuResponse(SubmenuBase):
+    dishes_count: int
 
 
 class Submenu(SubmenuBase, table=True):

@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from sqlmodel import Session, select
 
 from app.db import ActiveSession
-from app.models import Menu
+from app.models import Menu, MenuResponse
 from app.utils import get_object_or_404
 
 router = APIRouter()
@@ -17,7 +17,7 @@ def get_menu_by_id_query(menu_id):
     return select(Menu).where(Menu.id == menu_id)
 
 
-@router.get("/{menu_id}/")
+@router.get("/{menu_id}/", response_model=MenuResponse)
 def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
@@ -29,13 +29,21 @@ def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
     }
 
 
-@router.get("/", response_model=list[Menu])
+@router.get("/", response_model=list[MenuResponse])
 def menu_list(session: Session = ActiveSession):
     query = select(Menu)
-    return session.exec(query).all()
+    menus = session.exec(query).all()
+    return [
+        {
+            **menu.dict(),
+            "submenus_count": menu.submenus_count,
+            "dishes_count": menu.dishes_count,
+        }
+        for menu in menus
+    ]
 
 
-@router.post("/", response_model=Menu, status_code=HTTPStatus.CREATED)
+@router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
 def menu_create(menu: Menu, session: Session = ActiveSession):
     session.add(menu)
     session.commit()
@@ -43,7 +51,7 @@ def menu_create(menu: Menu, session: Session = ActiveSession):
     return menu
 
 
-@router.patch("/{menu_id}/")
+@router.patch("/{menu_id}/", response_model=MenuResponse)
 def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
@@ -59,6 +67,7 @@ def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSessi
     return {
         **menu.dict(),
         "submenus_count": menu.submenus_count,
+        "dishes_count": menu.dishes_count,
     }
 
 
