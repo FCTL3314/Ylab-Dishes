@@ -66,6 +66,7 @@ class DishBase(SQLModel):
 
 class Dish(DishBase, table=True):
     def __init__(self, **kwargs):
+        """Rounds price to dish rounding config setting."""
         if "price" in kwargs:
             template = f"{{:.{Config.DISH_PRICE_ROUNDING}f}}"
             kwargs["price"] = template.format(float(kwargs["price"]))
