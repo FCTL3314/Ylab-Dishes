@@ -21,7 +21,7 @@ def __init__(self, **kwargs):
 # 💽 Installation
 
 1. #### Clone or download the repository.
-2. #### Fill `.env.dist` with the required variables or leave the filled ones and rename the file to `.env`.
+2. #### Fill `.env.dist` with the required variables or leave the filled ones for test start and rename the file to `.env`.
 3. #### Run docker services: `docker-compose -f docker/local/docker-compose.yml up`.
 
 > Для тестового запуска, переменные из .env.dist менять не нужно, просто переименуйте файл в .env
