@@ -1,130 +1,79 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlmodel import Session, select
 from http import HTTPStatus
 
 from app.db import ActiveSession
-from app.dish.models import Menu, Submenu
+from app.models import Dish, Submenu, Menu
+from app.submenu.routes import SUBMENU_NOT_FOUND_MESSAGE, get_submenu_query
 from app.utils import get_object_or_404
 
 router = APIRouter()
 
-MENU_NOT_FOUND_MESSAGE = "menu not found"
-SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
-@router.get('/menus/{menu_id}/')
-def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-
-    return {
-        **menu.dict(),
-        "submenus_count": menu.submenus_count,
-        "dishes_count": menu.dishes_count,
-    }
-
-
-@router.get("/menus/", response_model=list[Menu])
-def menu_list(session: Session = ActiveSession):
-    statement = select(Menu)
-    menus = session.exec(statement).all()
-    return menus
+@router.get('/{dish_id}/')
+def dish_retrieve(menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession):
+    query = select(Dish).select_from(Menu).select_from(Submenu).where(
+        Dish.id == dish_id,
+        Submenu.id == submenu_id,
+        Menu.id == menu_id,
+    )
+    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
+    return dish
 
 
-@router.post("/menus/", response_model=Menu, status_code=HTTPStatus.CREATED)
-def menu_create(menu: Menu, session: Session = ActiveSession):
-    session.add(menu)
+@router.get("/", response_model=list[Dish])
+def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
+    query = select(Dish).select_from(Menu).select_from(Submenu).where(
+        Submenu.id == submenu_id,
+        Menu.id == menu_id,
+    )
+    return session.exec(query).all()
+
+
+@router.post("/", response_model=Dish, status_code=HTTPStatus.CREATED)
+def dish_create(menu_id: UUID, submenu_id: UUID, dish: Dish, session: Session = ActiveSession):
+    query = get_submenu_query(menu_id, submenu_id)
+    submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
+    submenu.dishes.append(dish)
+    session.add(dish)
     session.commit()
-    session.refresh(menu)
-    return menu
+    session.refresh(dish)
+    return dish
 
 
-@router.patch('/menus/{menu_id}/')
-def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
+@router.patch('/{dish_id}/')
+def dish_patch(menu_id: UUID, submenu_id: UUID, dish_id: UUID, updated_dish: Dish, session: Session = ActiveSession):
+    query = select(Dish).select_from(Menu).select_from(Submenu).where(
+        Dish.id == dish_id,
+        Submenu.id == submenu_id,
+        Menu.id == menu_id,
+    )
+    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
 
-    updated_menu_dict = updated_menu.dict(exclude_unset=True)
-    for key, val in updated_menu_dict.items():
-        setattr(menu, key, val)
+    updated_dish_dict = updated_dish.dict(exclude_unset=True)
 
-    session.add(menu)
+    for key, val in updated_dish_dict.items():
+        setattr(dish, key, val)
+
+    session.add(dish)
     session.commit()
-    session.refresh(menu)
-    return {
-        **menu.dict(),
-        "submenus_count": menu.submenus_count,
-    }
+    session.refresh(dish)
+    return dish
 
 
-@router.delete("/menus/{menu_id}/")
-def menu_delete(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    session.delete(menu)
+@router.delete("/{dish_id}/")
+def dish_delete(menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession):
+    query = select(Dish).select_from(Menu).select_from(Submenu).where(
+        Dish.id == dish_id,
+        Submenu.id == submenu_id,
+        Menu.id == menu_id,
+    )
+    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
+
+    session.delete(dish)
     session.commit()
-    return {"status": True, "message": "The menu has been deleted"}
-
-
-@router.get('/menus/{menu_id}/submenus/{submenu_id}/')
-def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    submenu = next((submenu for submenu in menu.submenus if submenu.id == submenu_id), None)
-
-    if submenu is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SUBMENU_NOT_FOUND_MESSAGE)
-
-    return {
-        **submenu.dict(),
-        "dishes_count": submenu.dishes_count,
-    }
-
-
-@router.get("/menus/{menu_id}/submenus/", response_model=list[Submenu])
-def submenu_list(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    return menu.submenus
-
-
-@router.post("/menus/{menu_id}/submenus/", response_model=Submenu, status_code=HTTPStatus.CREATED)
-def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    menu.submenus.append(submenu)
-    session.add(submenu)
-    session.commit()
-    session.refresh(submenu)
-    return submenu
-
-
-@router.patch('/menus/{menu_id}/submenus/{submenu_id}/')
-def submenu_patch(menu_id: UUID, submenu_id: UUID, updated_submenu: Menu, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    submenu = next((submenu for submenu in menu.submenus if submenu.id == submenu_id), None)
-
-    if submenu is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SUBMENU_NOT_FOUND_MESSAGE)
-
-    updated_submenu_dict = updated_submenu.dict(exclude_unset=True)
-    for key, val in updated_submenu_dict.items():
-        setattr(submenu, key, val)
-
-    session.add(submenu)
-    session.commit()
-    session.refresh(submenu)
-    return {
-        **submenu.dict(),
-        "dishes_count": submenu.dishes_count,
-    }
-
-
-@router.delete("/menus/{menu_id}/submenus/{submenu_id}/")
-def menu_delete(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(Menu, menu_id, session, not_found_msg=MENU_NOT_FOUND_MESSAGE)
-    submenu = next((submenu for submenu in menu.submenus if submenu.id == submenu_id), None)
-
-    if submenu is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=SUBMENU_NOT_FOUND_MESSAGE)
-
-    session.delete(submenu)
-    session.commit()
-    return {"status": True, "message": "The submenu has been deleted"}
+    return {"status": True, "message": "The dish has been deleted"}

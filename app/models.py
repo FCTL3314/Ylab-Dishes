@@ -12,7 +12,7 @@ class MenuBase(SQLModel):
 class Menu(MenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
 
-    submenus: list["Submenu"] = Relationship(back_populates="menu")
+    submenus: list["Submenu"] = Relationship(sa_relationship_kwargs={"cascade": "delete"}, back_populates="menu")
 
     @property
     def submenus_count(self):
@@ -37,8 +37,8 @@ class Submenu(SubmenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     menu_id: Optional[UUID] = Field(default=None, foreign_key="menu.id")
 
-    menu: Menu = Relationship(back_populates="submenus")
-    dishes: list["Dish"] = Relationship(back_populates="submenu")
+    menu: "Menu" = Relationship(back_populates="submenus")
+    dishes: list["Dish"] = Relationship(sa_relationship_kwargs={"cascade": "delete"}, back_populates="submenu")
 
     @property
     def dishes_count(self):
@@ -46,14 +46,15 @@ class Submenu(SubmenuBase, table=True):
 
 
 class SubmenuWithNestedModels(SubmenuBase):
-    menu: Menu
+    menu: "Menu"
     dishes: list["DishBase"] = []
 
 
 class DishBase(SQLModel):
     id: UUID
     title: str
-    price: float
+    description: str
+    price: str
 
 
 class Dish(DishBase, table=True):
