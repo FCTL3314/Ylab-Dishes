@@ -14,6 +14,10 @@ class Menu(MenuBase, table=True):
 
     submenus: list["Submenu"] = Relationship(back_populates="menu")
 
+    @property
+    def submenus_count(self):
+        return len(self.submenus)
+
 
 class MenuWithNestedModels(MenuBase):
     submenus: list["MenuBase"] = []
