@@ -18,6 +18,10 @@ class Menu(MenuBase, table=True):
     def submenus_count(self):
         return len(self.submenus)
 
+    @property
+    def dishes_count(self):
+        return sum(submenu.dishes_count for submenu in self.submenus)
+
 
 class MenuWithNestedModels(MenuBase):
     submenus: list["MenuBase"] = []
@@ -30,11 +34,30 @@ class SubmenuBase(SQLModel):
 
 
 class Submenu(SubmenuBase, table=True):
-    id: Optional[UUID] = Field(default=uuid4(), primary_key=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     menu_id: UUID = Field(foreign_key="menu.id")
 
     menu: Menu = Relationship(back_populates="submenus")
+    dishes: list["Dish"] = Relationship(back_populates="submenu")
+
+    @property
+    def dishes_count(self):
+        return len(self.dishes)
 
 
 class SubmenuWithNestedModels(SubmenuBase):
     menu: Menu
+    dishes: list["DishBase"] = []
+
+
+class DishBase(SQLModel):
+    id: UUID
+    title: str
+    price: float
+
+
+class Dish(DishBase, table=True):
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    submenu_id: UUID = Field(foreign_key="submenu.id")
+
+    submenu: Submenu = Relationship(back_populates="dishes")

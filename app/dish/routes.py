@@ -20,6 +20,7 @@ def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
     return {
         **menu.dict(),
         "submenus_count": menu.submenus_count,
+        "dishes_count": menu.dishes_count,
     }
 
 
