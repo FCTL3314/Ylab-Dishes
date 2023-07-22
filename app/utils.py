@@ -1,6 +1,6 @@
-from fastapi import HTTPException
-
 from http import HTTPStatus
+
+from fastapi import HTTPException
 
 
 def get_object_or_404(query, session, not_found_msg="Object not found"):

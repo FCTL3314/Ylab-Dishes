@@ -6,9 +6,10 @@ load_dotenv()
 
 
 class Config:
-    POSTGRES_DB = os.environ.get("POSTGRES_DB")
-    POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
-    POSTGRES_USER = os.environ.get("POSTGRES_USER")
-    POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+    DATABASE_NAME = os.environ.get('DATABASE_NAME')
+    DATABASE_HOST = os.environ.get("DATABASE_HOST")
+    DATABASE_PORT = os.environ.get("DATABASE_PORT")
+    DATABASE_USER = os.environ.get("DATABASE_USER")
+    DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 
     DISH_PRICE_ROUNDING = os.environ.get("DISH_PRICE_ROUNDING")

@@ -5,10 +5,10 @@ from app.config import Config
 
 SQLALCHEMY_URI = (
     f"postgresql://"
-    f"{Config.POSTGRES_USER}:"
-    f"{Config.POSTGRES_PASSWORD}@"
-    f"{Config.POSTGRES_HOST}/"
-    f"{Config.POSTGRES_DB}"
+    f"{Config.DATABASE_USER}:"
+    f"{Config.DATABASE_PASSWORD}@"
+    f"{Config.DATABASE_HOST}/"
+    f"{Config.DATABASE_NAME}"
 )
 engine = create_engine(SQLALCHEMY_URI)
 

@@ -5,17 +5,18 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from app.config import Config
-from app.models import Menu, Submenu, Dish
+from app.models import Dish, Menu, Submenu
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, "DB_USER", Config.POSTGRES_USER)
-config.set_section_option(section, "DB_HOST", Config.POSTGRES_HOST)
-config.set_section_option(section, "DB_PASSWORD", Config.POSTGRES_PASSWORD)
-config.set_section_option(section, "DB_NAME", Config.POSTGRES_DB)
+config.set_section_option(section, "DB_USER", Config.DATABASE_USER)
+config.set_section_option(section, "DB_PASSWORD", Config.DATABASE_PASSWORD)
+config.set_section_option(section, "DB_HOST", Config.DATABASE_HOST)
+config.set_section_option(section, "DB_PORT", Config.DATABASE_PORT)
+config.set_section_option(section, "DB_NAME", Config.DATABASE_NAME)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

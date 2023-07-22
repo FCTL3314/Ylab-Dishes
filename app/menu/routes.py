@@ -1,8 +1,8 @@
+from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter
 from sqlmodel import Session, select
-from http import HTTPStatus
 
 from app.db import ActiveSession
 from app.models import Menu
@@ -17,9 +17,11 @@ def get_menu_by_id_query(menu_id):
     return select(Menu).where(Menu.id == menu_id)
 
 
-@router.get('/{menu_id}/')
+@router.get("/{menu_id}/")
 def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_object_or_404(
+        get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
+    )
     return {
         **menu.dict(),
         "submenus_count": menu.submenus_count,
@@ -41,9 +43,11 @@ def menu_create(menu: Menu, session: Session = ActiveSession):
     return menu
 
 
-@router.patch('/{menu_id}/')
+@router.patch("/{menu_id}/")
 def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession):
-    menu = get_object_or_404(get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_object_or_404(
+        get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
+    )
 
     updated_menu_dict = updated_menu.dict(exclude_unset=True)
     for key, val in updated_menu_dict.items():
@@ -60,7 +64,9 @@ def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSessi
 
 @router.delete("/{menu_id}/")
 def menu_delete(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_object_or_404(get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_object_or_404(
+        get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
+    )
     session.delete(menu)
     session.commit()
     return {"status": True, "message": "The menu has been deleted"}

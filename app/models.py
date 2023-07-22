@@ -1,6 +1,9 @@
 from typing import Optional
 from uuid import UUID, uuid4
+
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.config import Config
 
 
 class MenuBase(SQLModel):
@@ -12,7 +15,9 @@ class MenuBase(SQLModel):
 class Menu(MenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
 
-    submenus: list["Submenu"] = Relationship(sa_relationship_kwargs={"cascade": "delete"}, back_populates="menu")
+    submenus: list["Submenu"] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"}, back_populates="menu"
+    )
 
     @property
     def submenus_count(self):
@@ -38,7 +43,9 @@ class Submenu(SubmenuBase, table=True):
     menu_id: Optional[UUID] = Field(default=None, foreign_key="menu.id")
 
     menu: "Menu" = Relationship(back_populates="submenus")
-    dishes: list["Dish"] = Relationship(sa_relationship_kwargs={"cascade": "delete"}, back_populates="submenu")
+    dishes: list["Dish"] = Relationship(
+        sa_relationship_kwargs={"cascade": "delete"}, back_populates="submenu"
+    )
 
     @property
     def dishes_count(self):
@@ -58,6 +65,12 @@ class DishBase(SQLModel):
 
 
 class Dish(DishBase, table=True):
+    def __init__(self, **kwargs):
+        if "price" in kwargs:
+            template = f"{{:.{Config.DISH_PRICE_ROUNDING}f}}"
+            kwargs["price"] = template.format(float(kwargs["price"]))
+        super().__init__(**kwargs)
+
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     submenu_id: Optional[UUID] = Field(default=None, foreign_key="submenu.id")
 

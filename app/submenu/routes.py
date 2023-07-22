@@ -1,8 +1,8 @@
+from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter
 from sqlmodel import Session, select
-from http import HTTPStatus
 
 from app.db import ActiveSession
 from app.menu.routes import MENU_NOT_FOUND_MESSAGE, get_menu_by_id_query
@@ -15,13 +15,17 @@ SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 
 
 def get_submenu_query(menu_id, submenu_id):
-    return select(Submenu).select_from(Menu).where(
-        Menu.id == menu_id,
-        Submenu.id == submenu_id,
+    return (
+        select(Submenu)
+        .select_from(Menu)
+        .where(
+            Menu.id == menu_id,
+            Submenu.id == submenu_id,
+        )
     )
 
 
-@router.get('/{submenu_id}/')
+@router.get("/{submenu_id}/")
 def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
     query = get_submenu_query(menu_id, submenu_id)
     submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
@@ -46,7 +50,8 @@ def submenu_list(menu_id: UUID, session: Session = ActiveSession):
 def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id),
-        session, MENU_NOT_FOUND_MESSAGE,
+        session,
+        MENU_NOT_FOUND_MESSAGE,
     )
     menu.submenus.append(submenu)
     session.add(submenu)
@@ -55,8 +60,13 @@ def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSes
     return submenu
 
 
-@router.patch('/{submenu_id}/')
-def submenu_patch(menu_id: UUID, submenu_id: UUID, updated_submenu: Menu, session: Session = ActiveSession):
+@router.patch("/{submenu_id}/")
+def submenu_patch(
+    menu_id: UUID,
+    submenu_id: UUID,
+    updated_submenu: Menu,
+    session: Session = ActiveSession,
+):
     query = get_submenu_query(menu_id, submenu_id)
     submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
 
