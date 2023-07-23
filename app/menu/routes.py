@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlmodel import Session, select
 
-from app.db import ActiveSession
+from app.dependencies import ActiveSession
 from app.models import Menu, MenuResponse
 from app.utils import get_object_or_404
 
@@ -18,7 +18,7 @@ def get_menu_by_id_query(menu_id):
 
 
 @router.get("/{menu_id}/", response_model=MenuResponse)
-def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
+async def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
     )
@@ -30,7 +30,7 @@ def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
 
 
 @router.get("/", response_model=list[MenuResponse])
-def menu_list(session: Session = ActiveSession):
+async def menu_list(session: Session = ActiveSession):
     query = select(Menu)
     menus = session.exec(query).all()
     return [
@@ -44,7 +44,7 @@ def menu_list(session: Session = ActiveSession):
 
 
 @router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
-def menu_create(menu: Menu, session: Session = ActiveSession):
+async def menu_create(menu: Menu, session: Session = ActiveSession):
     session.add(menu)
     session.commit()
     session.refresh(menu)
@@ -52,7 +52,9 @@ def menu_create(menu: Menu, session: Session = ActiveSession):
 
 
 @router.patch("/{menu_id}/", response_model=MenuResponse)
-def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession):
+async def menu_patch(
+    menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
+):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
     )
@@ -72,7 +74,7 @@ def menu_patch(menu_id: UUID, updated_menu: Menu, session: Session = ActiveSessi
 
 
 @router.delete("/{menu_id}/")
-def menu_delete(menu_id: UUID, session: Session = ActiveSession):
+async def menu_delete(menu_id: UUID, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id), session, MENU_NOT_FOUND_MESSAGE
     )

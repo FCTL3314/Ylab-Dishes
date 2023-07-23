@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlmodel import Session, select
 
-from app.db import ActiveSession
+from app.dependencies import ActiveSession
 from app.menu.routes import MENU_NOT_FOUND_MESSAGE, get_menu_by_id_query
 from app.models import Menu, Submenu, SubmenuResponse
 from app.utils import get_object_or_404
@@ -26,7 +26,9 @@ def get_submenu_query(menu_id, submenu_id):
 
 
 @router.get("/{submenu_id}/", response_model=SubmenuResponse)
-def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
+async def submenu_retrieve(
+    menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
+):
     query = get_submenu_query(menu_id, submenu_id)
     submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
 
@@ -37,7 +39,7 @@ def submenu_retrieve(menu_id: UUID, submenu_id: UUID, session: Session = ActiveS
 
 
 @router.get("/", response_model=list[SubmenuResponse])
-def submenu_list(menu_id: UUID, session: Session = ActiveSession):
+async def submenu_list(menu_id: UUID, session: Session = ActiveSession):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id),
         session,
@@ -50,7 +52,9 @@ def submenu_list(menu_id: UUID, session: Session = ActiveSession):
 
 
 @router.post("/", response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
-def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSession):
+async def submenu_create(
+    menu_id: UUID, submenu: Submenu, session: Session = ActiveSession
+):
     menu = get_object_or_404(
         get_menu_by_id_query(menu_id),
         session,
@@ -64,7 +68,7 @@ def submenu_create(menu_id: UUID, submenu: Submenu, session: Session = ActiveSes
 
 
 @router.patch("/{submenu_id}/", response_model=SubmenuResponse)
-def submenu_patch(
+async def submenu_patch(
     menu_id: UUID,
     submenu_id: UUID,
     updated_submenu: Menu,
@@ -87,7 +91,9 @@ def submenu_patch(
 
 
 @router.delete("/{submenu_id}/")
-def submenu_delete(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
+async def submenu_delete(
+    menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
+):
     query = get_submenu_query(menu_id, submenu_id)
     submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
 

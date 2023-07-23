@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlmodel import Session, select
 
-from app.db import ActiveSession
+from app.dependencies import ActiveSession
 from app.models import Dish, Menu, Submenu
 from app.submenu.routes import SUBMENU_NOT_FOUND_MESSAGE, get_submenu_query
 from app.utils import get_object_or_404
@@ -15,7 +15,7 @@ DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
 @router.get("/{dish_id}/", response_model=Dish)
-def dish_retrieve(
+async def dish_retrieve(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
     query = (
@@ -33,7 +33,7 @@ def dish_retrieve(
 
 
 @router.get("/", response_model=list[Dish])
-def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
+async def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
     query = (
         select(Dish)
         .select_from(Menu)
@@ -47,7 +47,7 @@ def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession)
 
 
 @router.post("/", response_model=Dish, status_code=HTTPStatus.CREATED)
-def dish_create(
+async def dish_create(
     menu_id: UUID, submenu_id: UUID, dish: Dish, session: Session = ActiveSession
 ):
     query = get_submenu_query(menu_id, submenu_id)
@@ -60,7 +60,7 @@ def dish_create(
 
 
 @router.patch("/{dish_id}/", response_model=Dish)
-def dish_patch(
+async def dish_patch(
     menu_id: UUID,
     submenu_id: UUID,
     dish_id: UUID,
@@ -91,7 +91,7 @@ def dish_patch(
 
 
 @router.delete("/{dish_id}/")
-def dish_delete(
+async def dish_delete(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
     query = (
