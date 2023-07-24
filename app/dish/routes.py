@@ -5,53 +5,53 @@ from fastapi import APIRouter
 from sqlmodel import Session, select
 
 from app.dependencies import ActiveSession
-from app.models import Dish, Menu, Submenu
-from app.submenu.routes import SUBMENU_NOT_FOUND_MESSAGE, get_submenu_query
-from app.utils import get_object_or_404
+from app.models import Dish, Submenu
+from app.submenu.routes import SUBMENU_NOT_FOUND_MESSAGE, get_submenu_by_id
+from app.utils import get_first_or_404
 
 router = APIRouter()
 
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
+def get_dishes_query(menu_id, submenu_id):
+    return (
+        select(Dish)
+        .join(Submenu, Dish.submenu_id == Submenu.id)
+        .where(Dish.submenu_id == submenu_id, Submenu.menu_id == menu_id)
+    )
+
+
+def get_dish_by_id(menu_id, submenu_id, dish_id):
+    return get_dishes_query(menu_id, submenu_id).where(Dish.id == dish_id)
+
+
 @router.get("/{dish_id}/", response_model=Dish)
 async def dish_retrieve(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
-    query = (
-        select(Dish)
-        .select_from(Menu)
-        .select_from(Submenu)
-        .where(
-            Dish.id == dish_id,
-            Submenu.id == submenu_id,
-            Menu.id == menu_id,
-        )
+    dish = get_first_or_404(
+        get_dish_by_id(menu_id, submenu_id, dish_id),
+        session,
+        DISH_NOT_FOUND_MESSAGE,
     )
-    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
     return dish
 
 
 @router.get("/", response_model=list[Dish])
 async def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
-    query = (
-        select(Dish)
-        .select_from(Menu)
-        .select_from(Submenu)
-        .where(
-            Submenu.id == submenu_id,
-            Menu.id == menu_id,
-        )
-    )
-    return session.exec(query).all()
+    return session.exec(get_dishes_query(menu_id, submenu_id)).all()
 
 
 @router.post("/", response_model=Dish, status_code=HTTPStatus.CREATED)
 async def dish_create(
     menu_id: UUID, submenu_id: UUID, dish: Dish, session: Session = ActiveSession
 ):
-    query = get_submenu_query(menu_id, submenu_id)
-    submenu = get_object_or_404(query, session, SUBMENU_NOT_FOUND_MESSAGE)
+    submenu = get_first_or_404(
+        get_submenu_by_id(menu_id, submenu_id),
+        session,
+        SUBMENU_NOT_FOUND_MESSAGE,
+    )
     submenu.dishes.append(dish)
     session.add(dish)
     session.commit()
@@ -67,17 +67,11 @@ async def dish_patch(
     updated_dish: Dish,
     session: Session = ActiveSession,
 ):
-    query = (
-        select(Dish)
-        .select_from(Menu)
-        .select_from(Submenu)
-        .where(
-            Dish.id == dish_id,
-            Submenu.id == submenu_id,
-            Menu.id == menu_id,
-        )
+    dish = get_first_or_404(
+        get_dish_by_id(menu_id, submenu_id, dish_id),
+        session,
+        DISH_NOT_FOUND_MESSAGE,
     )
-    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
 
     updated_dish_dict = updated_dish.dict(exclude_unset=True)
 
@@ -94,17 +88,11 @@ async def dish_patch(
 async def dish_delete(
     menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
-    query = (
-        select(Dish)
-        .select_from(Menu)
-        .select_from(Submenu)
-        .where(
-            Dish.id == dish_id,
-            Submenu.id == submenu_id,
-            Menu.id == menu_id,
-        )
+    dish = get_first_or_404(
+        get_dish_by_id(menu_id, submenu_id, dish_id),
+        session,
+        DISH_NOT_FOUND_MESSAGE,
     )
-    dish = get_object_or_404(query, session, DISH_NOT_FOUND_MESSAGE)
 
     session.delete(dish)
     session.commit()

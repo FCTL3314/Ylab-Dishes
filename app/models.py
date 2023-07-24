@@ -33,10 +33,6 @@ class Menu(MenuBase, table=True):
         return sum(submenu.dishes_count for submenu in self.submenus)
 
 
-class MenuWithNestedModels(MenuBase):
-    submenus: list["MenuBase"] = []
-
-
 class SubmenuBase(SQLModel):
     id: UUID
     title: str
@@ -59,11 +55,6 @@ class Submenu(SubmenuBase, table=True):
     @property
     def dishes_count(self):
         return len(self.dishes)
-
-
-class SubmenuWithNestedModels(SubmenuBase):
-    menu: "Menu"
-    dishes: list["DishBase"] = []
 
 
 class DishBase(SQLModel):
