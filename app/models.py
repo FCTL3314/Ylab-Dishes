@@ -6,7 +6,7 @@ from sqlmodel import Field, Relationship, select
 from app.config import Config
 from app.dish.schemas import DishBase
 from app.menu.schemas import MenuBase
-from submenu.schemas import SubmenuBase
+from app.submenu.schemas import SubmenuBase
 
 
 class Menu(MenuBase, table=True):
