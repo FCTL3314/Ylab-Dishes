@@ -6,9 +6,7 @@ from sqlmodel import Session
 
 from app.dependencies import ActiveSession
 from app.menu.routes import MENU_NOT_FOUND_MESSAGE
-from app.menu.services import get_menu_by_id
 from app.models import Menu, Submenu
-from app.submenu.services import get_submenus_query, get_submenu_by_id
 from submenu.schemas import SubmenuResponse
 from app.utils import get_first_or_404
 
@@ -22,7 +20,7 @@ async def submenu_retrieve(
         menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
 ):
     submenu = get_first_or_404(
-        get_submenu_by_id(menu_id, submenu_id),
+        Submenu.select_by_id(menu_id, submenu_id),
         session,
         SUBMENU_NOT_FOUND_MESSAGE,
     )
@@ -31,7 +29,7 @@ async def submenu_retrieve(
 
 @router.get("/", response_model=list[SubmenuResponse])
 async def submenu_list(menu_id: UUID, session: Session = ActiveSession):
-    return session.exec(get_submenus_query(menu_id)).all()
+    return session.exec(Submenu.select_all(menu_id)).all()
 
 
 @router.post("/", response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
@@ -39,7 +37,7 @@ async def submenu_create(
         menu_id: UUID, submenu: Submenu, session: Session = ActiveSession
 ):
     menu = get_first_or_404(
-        get_menu_by_id(menu_id),
+        Menu.select_by_id(menu_id),
         session,
         MENU_NOT_FOUND_MESSAGE,
     )
@@ -58,7 +56,7 @@ async def submenu_patch(
         session: Session = ActiveSession,
 ):
     submenu = get_first_or_404(
-        get_submenu_by_id(menu_id, submenu_id),
+        Submenu.select_by_id(menu_id, submenu_id),
         session,
         SUBMENU_NOT_FOUND_MESSAGE,
     )
@@ -76,7 +74,7 @@ async def submenu_delete(
         menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
 ):
     submenu = get_first_or_404(
-        get_submenu_by_id(menu_id, submenu_id),
+        Submenu.select_by_id(menu_id, submenu_id),
         session,
         SUBMENU_NOT_FOUND_MESSAGE,
     )

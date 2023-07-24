@@ -6,7 +6,6 @@ from sqlmodel import Session
 
 from app.dependencies import ActiveSession
 from app.menu.schemas import MenuResponse
-from app.menu.services import get_menus_query, get_menu_by_id
 from app.models import Menu
 from app.utils import get_first_or_404
 
@@ -17,14 +16,13 @@ MENU_NOT_FOUND_MESSAGE = "menu not found"
 
 @router.get("/{menu_id}/", response_model=MenuResponse)
 async def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_first_or_404(get_menu_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_first_or_404(Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
     return menu
 
 
 @router.get("/", response_model=list[MenuResponse])
 async def menu_list(session: Session = ActiveSession):
-    query = get_menus_query()
-    menus = session.exec(query).all()
+    menus = session.exec(Menu.select_all()).all()
     return menus
 
 
@@ -40,7 +38,7 @@ async def menu_create(menu: Menu, session: Session = ActiveSession):
 async def menu_patch(
         menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
 ):
-    menu = get_first_or_404(get_menu_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_first_or_404(Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
 
     updated_menu_dict = updated_menu.dict(exclude_unset=True)
     for key, val in updated_menu_dict.items():
@@ -54,7 +52,7 @@ async def menu_patch(
 
 @router.delete("/{menu_id}/")
 async def menu_delete(menu_id: UUID, session: Session = ActiveSession):
-    menu = get_first_or_404(get_menu_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
+    menu = get_first_or_404(Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
     session.delete(menu)
     session.commit()
     return {"status": True, "message": "The menu has been deleted"}

@@ -5,10 +5,9 @@ from fastapi import APIRouter
 from sqlmodel import Session
 
 from app.dependencies import ActiveSession
-from app.dish.services import get_dishes_query, get_dish_by_id
 from app.models import Dish
+from app.models import Submenu
 from app.submenu.routes import SUBMENU_NOT_FOUND_MESSAGE
-from app.submenu.services import get_submenu_by_id
 from app.utils import get_first_or_404
 
 router = APIRouter()
@@ -21,7 +20,7 @@ async def dish_retrieve(
         menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
     dish = get_first_or_404(
-        get_dish_by_id(menu_id, submenu_id, dish_id),
+        Dish.select_by_id(menu_id, submenu_id, dish_id),
         session,
         DISH_NOT_FOUND_MESSAGE,
     )
@@ -30,7 +29,7 @@ async def dish_retrieve(
 
 @router.get("/", response_model=list[Dish])
 async def dish_list(menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession):
-    return session.exec(get_dishes_query(menu_id, submenu_id)).all()
+    return session.exec(Dish.select_all(menu_id, submenu_id)).all()
 
 
 @router.post("/", response_model=Dish, status_code=HTTPStatus.CREATED)
@@ -38,7 +37,7 @@ async def dish_create(
         menu_id: UUID, submenu_id: UUID, dish: Dish, session: Session = ActiveSession
 ):
     submenu = get_first_or_404(
-        get_submenu_by_id(menu_id, submenu_id),
+        Submenu.select_by_id(menu_id, submenu_id),
         session,
         SUBMENU_NOT_FOUND_MESSAGE,
     )
@@ -58,7 +57,7 @@ async def dish_patch(
         session: Session = ActiveSession,
 ):
     dish = get_first_or_404(
-        get_dish_by_id(menu_id, submenu_id, dish_id),
+        Dish.select_by_id(menu_id, submenu_id, dish_id),
         session,
         DISH_NOT_FOUND_MESSAGE,
     )
@@ -79,7 +78,7 @@ async def dish_delete(
         menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: Session = ActiveSession
 ):
     dish = get_first_or_404(
-        get_dish_by_id(menu_id, submenu_id, dish_id),
+        Dish.select_by_id(menu_id, submenu_id, dish_id),
         session,
         DISH_NOT_FOUND_MESSAGE,
     )
