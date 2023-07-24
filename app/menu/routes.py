@@ -2,23 +2,17 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.dependencies import ActiveSession
-from app.models import Menu, MenuResponse
+from app.menu.schemas import MenuResponse
+from app.menu.services import get_menus_query, get_menu_by_id
+from app.models import Menu
 from app.utils import get_first_or_404
 
 router = APIRouter()
 
 MENU_NOT_FOUND_MESSAGE = "menu not found"
-
-
-def get_menus_query():
-    return select(Menu)
-
-
-def get_menu_by_id(menu_id):
-    return get_menus_query().where(Menu.id == menu_id)
 
 
 @router.get("/{menu_id}/", response_model=MenuResponse)
@@ -44,7 +38,7 @@ async def menu_create(menu: Menu, session: Session = ActiveSession):
 
 @router.patch("/{menu_id}/", response_model=MenuResponse)
 async def menu_patch(
-    menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
+        menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
 ):
     menu = get_first_or_404(get_menu_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE)
 

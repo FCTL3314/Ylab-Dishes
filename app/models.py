@@ -1,20 +1,12 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship
 
 from app.config import Config
-
-
-class MenuBase(SQLModel):
-    id: UUID
-    title: str
-    description: str
-
-
-class MenuResponse(MenuBase):
-    submenus_count: int
-    dishes_count: int
+from app.dish.schemas import DishBase
+from app.menu.schemas import MenuBase
+from submenu.schemas import SubmenuBase
 
 
 class Menu(MenuBase, table=True):
@@ -33,16 +25,6 @@ class Menu(MenuBase, table=True):
         return sum(submenu.dishes_count for submenu in self.submenus)
 
 
-class SubmenuBase(SQLModel):
-    id: UUID
-    title: str
-    description: str
-
-
-class SubmenuResponse(SubmenuBase):
-    dishes_count: int
-
-
 class Submenu(SubmenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     menu_id: Optional[UUID] = Field(default=None, foreign_key="menu.id")
@@ -55,13 +37,6 @@ class Submenu(SubmenuBase, table=True):
     @property
     def dishes_count(self):
         return len(self.dishes)
-
-
-class DishBase(SQLModel):
-    id: UUID
-    title: str
-    description: str
-    price: str
 
 
 class Dish(DishBase, table=True):

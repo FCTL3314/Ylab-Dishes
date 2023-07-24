@@ -2,11 +2,14 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.dependencies import ActiveSession
-from app.menu.routes import MENU_NOT_FOUND_MESSAGE, get_menu_by_id
-from app.models import Menu, Submenu, SubmenuResponse
+from app.menu.routes import MENU_NOT_FOUND_MESSAGE
+from app.menu.services import get_menu_by_id
+from app.models import Menu, Submenu
+from app.submenu.services import get_submenus_query, get_submenu_by_id
+from submenu.schemas import SubmenuResponse
 from app.utils import get_first_or_404
 
 router = APIRouter()
@@ -14,17 +17,9 @@ router = APIRouter()
 SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 
 
-def get_submenus_query(menu_id):
-    return select(Submenu).where(Menu.id == menu_id)
-
-
-def get_submenu_by_id(menu_id, submenu_id):
-    return get_submenus_query(menu_id).where(Submenu.id == submenu_id)
-
-
 @router.get("/{submenu_id}/", response_model=SubmenuResponse)
 async def submenu_retrieve(
-    menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
+        menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
 ):
     submenu = get_first_or_404(
         get_submenu_by_id(menu_id, submenu_id),
@@ -41,7 +36,7 @@ async def submenu_list(menu_id: UUID, session: Session = ActiveSession):
 
 @router.post("/", response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
 async def submenu_create(
-    menu_id: UUID, submenu: Submenu, session: Session = ActiveSession
+        menu_id: UUID, submenu: Submenu, session: Session = ActiveSession
 ):
     menu = get_first_or_404(
         get_menu_by_id(menu_id),
@@ -57,10 +52,10 @@ async def submenu_create(
 
 @router.patch("/{submenu_id}/", response_model=SubmenuResponse)
 async def submenu_patch(
-    menu_id: UUID,
-    submenu_id: UUID,
-    updated_submenu: Menu,
-    session: Session = ActiveSession,
+        menu_id: UUID,
+        submenu_id: UUID,
+        updated_submenu: Menu,
+        session: Session = ActiveSession,
 ):
     submenu = get_first_or_404(
         get_submenu_by_id(menu_id, submenu_id),
@@ -78,7 +73,7 @@ async def submenu_patch(
 
 @router.delete("/{submenu_id}/")
 async def submenu_delete(
-    menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
+        menu_id: UUID, submenu_id: UUID, session: Session = ActiveSession
 ):
     submenu = get_first_or_404(
         get_submenu_by_id(menu_id, submenu_id),
