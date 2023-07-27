@@ -9,15 +9,18 @@ SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 class SubmenuService(BaseCRUDService):
     @staticmethod
     def retrieve(menu_id, submenu_id, session):
+        query = Submenu.query_with_count(menu_id).where(
+            Submenu.id == submenu_id,
+        )
         return get_first_or_404(
-            Submenu.select_by_id(menu_id, submenu_id),
+            query,
             session,
             SUBMENU_NOT_FOUND_MESSAGE,
         )
 
     @staticmethod
     def list(menu_id, session):
-        return session.exec(Submenu.select_all(menu_id)).all()
+        return session.exec(Submenu.query_with_count(menu_id)).all()
 
     @staticmethod
     def create(menu_id, submenu, session):
@@ -30,7 +33,7 @@ class SubmenuService(BaseCRUDService):
         session.add(submenu)
         session.commit()
         session.refresh(submenu)
-        return submenu
+        return SubmenuService.retrieve(menu_id, submenu.id, session)
 
     @staticmethod
     def update(menu_id, submenu_id, updated_submenu, session):
@@ -45,7 +48,7 @@ class SubmenuService(BaseCRUDService):
         session.add(submenu)
         session.commit()
         session.refresh(submenu)
-        return submenu
+        return SubmenuService.retrieve(menu_id, submenu.id, session)
 
     @staticmethod
     def delete(menu_id, submenu_id, session):

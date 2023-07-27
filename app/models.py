@@ -1,7 +1,8 @@
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Field, Relationship, select
+from sqlmodel import Field, Relationship, select as sql_model_select
+from sqlalchemy import func, distinct, select
 
 from app.config import Config
 from app.dish.schemas import DishBase
@@ -16,17 +17,24 @@ class Menu(MenuBase, table=True):
         sa_relationship_kwargs={"cascade": "delete"}, back_populates="menu"
     )
 
-    @property
-    def submenus_count(self):
-        return len(self.submenus)
-
-    @property
-    def dishes_count(self):
-        return sum(submenu.dishes_count for submenu in self.submenus)
+    @classmethod
+    def query_with_count(cls):
+        return (
+            select(
+                cls.id,
+                cls.title,
+                cls.description,
+                func.count(distinct(Submenu.id)).label("submenus_count"),
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(Submenu, Submenu.menu_id == cls.id)
+            .outerjoin(Dish, Dish.submenu_id == Submenu.id)
+            .group_by(cls.id)
+        )
 
     @classmethod
     def select_all(cls):
-        return select(cls)
+        return sql_model_select(cls)
 
     @classmethod
     def select_by_id(cls, identifier):
@@ -42,13 +50,24 @@ class Submenu(SubmenuBase, table=True):
         sa_relationship_kwargs={"cascade": "delete"}, back_populates="submenu"
     )
 
-    @property
-    def dishes_count(self):
-        return len(self.dishes)
+    @classmethod
+    def query_with_count(cls, menu_id):
+        return (
+            select(
+                cls.id,
+                cls.title,
+                cls.description,
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(Menu, Submenu.menu_id == Menu.id)
+            .outerjoin(Dish, Dish.submenu_id == cls.id)
+            .where(Menu.id == menu_id)
+            .group_by(cls.id)
+        )
 
     @classmethod
     def select_all(cls, menu_id):
-        return select(cls).where(cls.menu_id == menu_id)
+        return sql_model_select(cls).where(cls.menu_id == menu_id)
 
     @classmethod
     def select_by_id(cls, menu_id, identifier):
@@ -71,7 +90,7 @@ class Dish(DishBase, table=True):
     @classmethod
     def select_all(cls, menu_id, submenu_id):
         return (
-            select(cls)
+            sql_model_select(cls)
             .join(Submenu, cls.submenu_id == Submenu.id)
             .where(cls.submenu_id == submenu_id, Submenu.menu_id == menu_id)
         )

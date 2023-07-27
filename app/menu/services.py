@@ -8,20 +8,19 @@ MENU_NOT_FOUND_MESSAGE = "menu not found"
 class MenuService(BaseCRUDService):
     @staticmethod
     def retrieve(menu_id, session):
-        return get_first_or_404(
-            Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE
-        )
+        query = Menu.query_with_count().where(Menu.id == menu_id)
+        return get_first_or_404(query, session, MENU_NOT_FOUND_MESSAGE)
 
     @staticmethod
     def list(session):
-        return session.exec(Menu.select_all()).all()
+        return session.exec(Menu.query_with_count()).all()
 
     @staticmethod
     def create(menu, session):
         session.add(menu)
         session.commit()
         session.refresh(menu)
-        return menu
+        return MenuService.retrieve(menu.id, session)
 
     @staticmethod
     def update(menu_id, updated_menu, session):
@@ -36,7 +35,7 @@ class MenuService(BaseCRUDService):
         session.add(menu)
         session.commit()
         session.refresh(menu)
-        return menu
+        return MenuService.retrieve(menu_id, session)
 
     @staticmethod
     def delete(menu_id, session):
