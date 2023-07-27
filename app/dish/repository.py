@@ -1,26 +1,23 @@
 from app.models import Submenu, Dish
-from app.services import BaseCRUDService
-from app.submenu.services import SUBMENU_NOT_FOUND_MESSAGE
+from app.common.repository import BaseCRUDRepository
+from app.submenu.repository import SUBMENU_NOT_FOUND_MESSAGE
 from app.utils import get_first_or_404
 
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
-class DishService(BaseCRUDService):
-    @staticmethod
-    def retrieve(menu_id, submenu_id, dish_id, session):
+class DishRepository(BaseCRUDRepository):
+    def retrieve(self, menu_id, submenu_id, dish_id, session):
         return get_first_or_404(
             Dish.select_by_id(menu_id, submenu_id, dish_id),
             session,
             DISH_NOT_FOUND_MESSAGE,
         )
 
-    @staticmethod
-    def list(menu_id, submenu_id, session):
+    def list(self, menu_id, submenu_id, session):
         return session.exec(Dish.select_all(menu_id, submenu_id)).all()
 
-    @staticmethod
-    def create(menu_id, submenu_id, dish, session):
+    def create(self, menu_id, submenu_id, dish, session):
         submenu = get_first_or_404(
             Submenu.select_by_id(menu_id, submenu_id),
             session,
@@ -32,8 +29,7 @@ class DishService(BaseCRUDService):
         session.refresh(dish)
         return dish
 
-    @staticmethod
-    def update(menu_id, submenu_id, dish_id, updated_dish, session):
+    def update(self, menu_id, submenu_id, dish_id, updated_dish, session):
         dish = get_first_or_404(
             Dish.select_by_id(menu_id, submenu_id, dish_id),
             session,
@@ -50,8 +46,7 @@ class DishService(BaseCRUDService):
         session.refresh(dish)
         return dish
 
-    @staticmethod
-    def delete(menu_id, submenu_id, dish_id, session):
+    def delete(self, menu_id, submenu_id, dish_id, session):
         dish = get_first_or_404(
             Dish.select_by_id(menu_id, submenu_id, dish_id),
             session,

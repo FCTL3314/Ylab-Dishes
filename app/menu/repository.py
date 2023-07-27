@@ -1,29 +1,25 @@
 from app.models import Menu
-from app.services import BaseCRUDService
+from app.common.repository import BaseCRUDRepository
 from app.utils import get_first_or_404
 
 MENU_NOT_FOUND_MESSAGE = "menu not found"
 
 
-class MenuService(BaseCRUDService):
-    @staticmethod
-    def retrieve(menu_id, session):
-        query = Menu.query_with_count().where(Menu.id == menu_id)
+class MenuRepository(BaseCRUDRepository):
+    def retrieve(self, menu_id, session):
+        query = Menu.select_all_with_count().where(Menu.id == menu_id)
         return get_first_or_404(query, session, MENU_NOT_FOUND_MESSAGE)
 
-    @staticmethod
-    def list(session):
-        return session.exec(Menu.query_with_count()).all()
+    def list(self, session):
+        return session.exec(Menu.select_all_with_count()).all()
 
-    @staticmethod
-    def create(menu, session):
+    def create(self, menu, session):
         session.add(menu)
         session.commit()
         session.refresh(menu)
-        return MenuService.retrieve(menu.id, session)
+        return self.retrieve(menu.id, session)
 
-    @staticmethod
-    def update(menu_id, updated_menu, session):
+    def update(self, menu_id, updated_menu, session):
         menu = get_first_or_404(
             Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE
         )
@@ -35,10 +31,9 @@ class MenuService(BaseCRUDService):
         session.add(menu)
         session.commit()
         session.refresh(menu)
-        return MenuService.retrieve(menu_id, session)
+        return self.retrieve(menu_id, session)
 
-    @staticmethod
-    def delete(menu_id, session):
+    def delete(self, menu_id, session):
         menu = get_first_or_404(
             Menu.select_by_id(menu_id), session, MENU_NOT_FOUND_MESSAGE
         )

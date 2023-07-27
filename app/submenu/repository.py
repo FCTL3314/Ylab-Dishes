@@ -1,14 +1,13 @@
-from app.menu.services import MENU_NOT_FOUND_MESSAGE
+from app.common.repository import BaseCRUDRepository
+from app.menu.repository import MENU_NOT_FOUND_MESSAGE
 from app.models import Submenu, Menu
-from app.services import BaseCRUDService
 from app.utils import get_first_or_404
 
 SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 
 
-class SubmenuService(BaseCRUDService):
-    @staticmethod
-    def retrieve(menu_id, submenu_id, session):
+class SubmenuRepository(BaseCRUDRepository):
+    def retrieve(self, menu_id, submenu_id, session):
         query = Submenu.query_with_count(menu_id).where(
             Submenu.id == submenu_id,
         )
@@ -18,12 +17,10 @@ class SubmenuService(BaseCRUDService):
             SUBMENU_NOT_FOUND_MESSAGE,
         )
 
-    @staticmethod
-    def list(menu_id, session):
+    def list(self, menu_id, session):
         return session.exec(Submenu.query_with_count(menu_id)).all()
 
-    @staticmethod
-    def create(menu_id, submenu, session):
+    def create(self, menu_id, submenu, session):
         menu = get_first_or_404(
             Menu.select_by_id(menu_id),
             session,
@@ -33,10 +30,9 @@ class SubmenuService(BaseCRUDService):
         session.add(submenu)
         session.commit()
         session.refresh(submenu)
-        return SubmenuService.retrieve(menu_id, submenu.id, session)
+        return self.retrieve(menu_id, submenu.id, session)
 
-    @staticmethod
-    def update(menu_id, submenu_id, updated_submenu, session):
+    def update(self, menu_id, submenu_id, updated_submenu, session):
         submenu = get_first_or_404(
             Submenu.select_by_id(menu_id, submenu_id),
             session,
@@ -48,10 +44,9 @@ class SubmenuService(BaseCRUDService):
         session.add(submenu)
         session.commit()
         session.refresh(submenu)
-        return SubmenuService.retrieve(menu_id, submenu.id, session)
+        return self.retrieve(menu_id, submenu.id, session)
 
-    @staticmethod
-    def delete(menu_id, submenu_id, session):
+    def delete(self, menu_id, submenu_id, session):
         submenu = get_first_or_404(
             Submenu.select_by_id(menu_id, submenu_id),
             session,

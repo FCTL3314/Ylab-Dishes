@@ -18,7 +18,7 @@ class Menu(MenuBase, table=True):
     )
 
     @classmethod
-    def query_with_count(cls):
+    def select_all_with_count(cls):
         return (
             select(
                 cls.id,
