@@ -1,11 +1,11 @@
 from app.models import Menu
+from app.services import BaseCRUDService
 from app.utils import get_first_or_404
 
 MENU_NOT_FOUND_MESSAGE = "menu not found"
 
 
-class MenuService:
-
+class MenuService(BaseCRUDService):
     @staticmethod
     def retrieve(menu_id, session):
         return get_first_or_404(
