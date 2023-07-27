@@ -11,8 +11,6 @@ from app.submenu.services import SubmenuService
 
 router = APIRouter()
 
-SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
-
 
 @router.get("/{submenu_id}/", response_model=SubmenuResponse)
 async def submenu_retrieve(
