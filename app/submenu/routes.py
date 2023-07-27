@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from sqlmodel import Session
 
 from app.dependencies import ActiveSession
-from app.menu.routes import MENU_NOT_FOUND_MESSAGE
+from app.menu.services import MENU_NOT_FOUND_MESSAGE
 from app.models import Menu, Submenu
 from app.submenu.schemas import SubmenuResponse
 from app.utils import get_first_or_404
