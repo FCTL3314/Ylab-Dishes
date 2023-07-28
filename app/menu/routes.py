@@ -5,14 +5,14 @@ from fastapi import APIRouter
 from sqlmodel import Session
 
 from app.dependencies import ActiveSession
-from app.menu.repository import MenuRepository
+from app.menu.repository import MenuWithCountingRepository
 from app.menu.schemas import MenuResponse
 from app.models import Menu
 
 router = APIRouter()
 
 
-menu_repository = MenuRepository()
+menu_repository = MenuWithCountingRepository()
 
 
 @router.get("/{menu_id}/", response_model=MenuResponse)

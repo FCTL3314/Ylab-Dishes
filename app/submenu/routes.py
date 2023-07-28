@@ -6,13 +6,13 @@ from sqlmodel import Session
 
 from app.dependencies import ActiveSession
 from app.models import Menu, Submenu
-from app.submenu.repository import SubmenuRepository
+from app.submenu.repository import SubmenuWithCountingRepository
 from app.submenu.schemas import SubmenuResponse
 
 router = APIRouter()
 
 
-submenu_repository = SubmenuRepository()
+submenu_repository = SubmenuWithCountingRepository()
 
 
 @router.get("/{submenu_id}/", response_model=SubmenuResponse)
@@ -35,9 +35,8 @@ async def submenu_patch(
     menu_id: UUID,
     submenu_id: UUID,
     updated_submenu: Menu,
-    session: Session = ActiveSession,
 ):
-    return submenu_repository.update(menu_id, submenu_id, updated_submenu, session)
+    return submenu_repository.update(menu_id, submenu_id, updated_submenu)
 
 
 @router.delete("/{submenu_id}/")
