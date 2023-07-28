@@ -2,7 +2,7 @@ from sqlalchemy import distinct, func, select
 from sqlmodel import select as sqlmodel_select
 
 from app.common.repository import BaseCRUDRepository
-from app.models import Menu, Dish, Submenu
+from app.models import Dish, Menu, Submenu
 from app.utils import get_first_or_404
 
 MENU_NOT_FOUND_MESSAGE = "menu not found"
@@ -19,35 +19,35 @@ class MenuRepository(BaseCRUDRepository):
             MENU_NOT_FOUND_MESSAGE,
         )
 
-    def retrieve(self, menu_id):
+    def retrieve(self, menu_id, session):
         query = self.base_query.where(Menu.id == menu_id)
-        return get_first_or_404(query, self.session, MENU_NOT_FOUND_MESSAGE)
+        return get_first_or_404(query, session, MENU_NOT_FOUND_MESSAGE)
 
     def list(self, session):
         return session.exec(self.base_query).all()
 
-    def create(self, menu):
-        self.session.add(menu)
-        self.session.commit()
-        self.session.refresh(menu)
-        return self.retrieve(menu.id)
+    def create(self, menu, session):
+        session.add(menu)
+        session.commit()
+        session.refresh(menu)
+        return self.retrieve(menu.id, session)
 
-    def update(self, menu_id, updated_menu):
-        menu = self.get_by_id(menu_id, self.session)
+    def update(self, menu_id, updated_menu, session):
+        menu = self.get_by_id(menu_id, session)
 
         updated_menu_dict = updated_menu.dict(exclude_unset=True)
         for key, val in updated_menu_dict.items():
             setattr(menu, key, val)
 
-        self.session.add(menu)
-        self.session.commit()
-        self.session.refresh(menu)
-        return self.retrieve(menu_id)
+        session.add(menu, session)
+        session.commit()
+        session.refresh(menu)
+        return self.retrieve(menu_id, session)
 
-    def delete(self, menu_id):
-        menu = self.get_by_id(menu_id, self.session)
-        self.session.delete(menu)
-        self.session.commit()
+    def delete(self, menu_id, session):
+        menu = self.get_by_id(menu_id, session)
+        session.delete(menu)
+        session.commit()
         return {"status": True, "message": "The menu has been deleted"}
 
 

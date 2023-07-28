@@ -16,8 +16,8 @@ menu_repository = MenuWithCountingRepository()
 
 
 @router.get("/{menu_id}/", response_model=MenuResponse)
-async def menu_retrieve(menu_id: UUID):
-    return menu_repository.retrieve(menu_id)
+async def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
+    return menu_repository.retrieve(menu_id, session)
 
 
 @router.get("/", response_model=list[MenuResponse])
@@ -26,15 +26,17 @@ async def menu_list(session: Session = ActiveSession):
 
 
 @router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
-async def menu_create(menu: Menu):
-    return menu_repository.create(menu)
+async def menu_create(menu: Menu, session: Session = ActiveSession):
+    return menu_repository.create(menu, session)
 
 
 @router.patch("/{menu_id}/", response_model=MenuResponse)
-async def menu_patch(menu_id: UUID, updated_menu: Menu):
-    return menu_repository.update(menu_id, updated_menu)
+async def menu_patch(
+    menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
+):
+    return menu_repository.update(menu_id, updated_menu, session)
 
 
 @router.delete("/{menu_id}/")
-async def menu_delete(menu_id: UUID):
-    return menu_repository.delete(menu_id)
+async def menu_delete(menu_id: UUID, session: Session = ActiveSession):
+    return menu_repository.delete(menu_id, session)

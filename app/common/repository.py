@@ -1,23 +1,7 @@
-from abc import abstractmethod, ABC
-
-from sqlmodel import Session
-
-from app.db import get_session
+from abc import ABC, abstractmethod
 
 
-class BaseRepository(ABC):
-    def __init__(self):
-        self.session: Session = self.get_session()
-
-    @abstractmethod
-    def get_session(self) -> Session:
-        pass
-
-
-class BaseCRUDRepository(BaseRepository):
-    def get_session(self) -> Session:
-        return next(get_session())
-
+class BaseCRUDRepository(ABC):
     @abstractmethod
     def retrieve(self, *args, **kwargs):
         pass
