@@ -71,7 +71,7 @@ def submenu(menu, session):
 @pytest.fixture()
 def dish(submenu, session):
     dish = Dish(
-        title="Test title", description="Test description", submenu_id=submenu.id
+        title="Test title", description="Test description", price="19.99", submenu_id=submenu.id
     )
     session.add(dish)
     session.commit()
