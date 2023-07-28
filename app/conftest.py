@@ -5,6 +5,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.config import Config
 from app.db import get_session
 from app.main import app
+from app.models import Menu, Submenu, Dish
 
 TEST_SQLALCHEMY_URI = (
     f"postgresql://"
@@ -43,3 +44,37 @@ def session():
 @pytest.fixture(scope="session")
 def client():
     return TestClient(app)
+
+
+@pytest.fixture()
+def menu(session):
+    menu = Menu(title="Test title", description="Test description")
+    session.add(menu)
+    session.commit()
+    yield menu
+    session.delete(menu)
+    session.commit()
+
+
+@pytest.fixture()
+def submenu(menu, session):
+    submenu = Submenu(
+        title="Test title", description="Test description", menu_id=menu.id
+    )
+    session.add(submenu)
+    session.commit()
+    yield submenu
+    session.delete(submenu)
+    session.commit()
+
+
+@pytest.fixture()
+def dish(submenu, session):
+    dish = Dish(
+        title="Test title", description="Test description", submenu_id=submenu.id
+    )
+    session.add(dish)
+    session.commit()
+    yield dish
+    session.delete(dish)
+    session.commit()
