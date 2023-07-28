@@ -25,3 +25,10 @@ def __init__(self, **kwargs):
 3. #### Run docker services: `docker-compose -f docker/local/docker-compose.yml up`.
 
 > Для тестового запуска, переменные из .env.dist менять не нужно, просто переименуйте файл в .env
+
+
+# 🔍 Testing
+
+1. #### Run docker services for testing: `docker-compose -f docker/local/docker-compose.yml -f docker/test/docker-compose.yml up -d`
+
+> Для того, что бы не дублировать compose файлы, команда выше использует перезапись файлов.
