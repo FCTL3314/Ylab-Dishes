@@ -3,8 +3,9 @@ from http import HTTPStatus
 import pytest
 from sqlmodel import select
 
-from app.common.tests import is_response_match_object_fields, get_model_objects_count
-from app.models import Submenu, Dish
+from app.common.tests import (get_model_objects_count,
+                              is_response_match_object_fields)
+from app.models import Dish, Submenu
 
 
 def get_base_url(menu_id, submenu_id):
@@ -12,14 +13,14 @@ def get_base_url(menu_id, submenu_id):
 
 
 def get_related_submenu(dish, session):
-    return session.exec(
-        select(Submenu).where(Submenu.id == dish.submenu_id)
-    ).first()
+    return session.exec(select(Submenu).where(Submenu.id == dish.submenu_id)).first()
 
 
 def test_dish_retrieve(dish, client, session):
     submenu = get_related_submenu(dish, session)
-    response = client.get(get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/")
+    response = client.get(
+        get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/"
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
@@ -71,15 +72,15 @@ def test_dish_update(dish, client, session):
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
-        response.json(),
-        data,
-        ("title", "description", "price")
+        response.json(), data, ("title", "description", "price")
     )
 
 
 def test_dish_delete(dish, client, session):
     submenu = get_related_submenu(dish, session)
-    response = client.delete(get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/")
+    response = client.delete(
+        get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/"
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert get_model_objects_count(Dish, session) == 0

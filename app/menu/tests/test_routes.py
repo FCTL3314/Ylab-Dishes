@@ -3,8 +3,9 @@ from http import HTTPStatus
 import pytest
 from sqlmodel import select
 
-from app.common.tests import is_response_match_object_fields, get_model_objects_count
-from app.models import Menu
+from app.common.tests import (get_model_objects_count,
+                              is_response_match_object_fields)
+from app.models import Menu, Submenu
 
 
 def test_menu_retrieve(menu, client):
@@ -69,6 +70,16 @@ def test_menu_delete(menu, client, session):
 
     assert response.status_code == HTTPStatus.OK
     assert get_model_objects_count(Menu, session) == 0
+
+
+def test_counting(dish, client, session):
+    submenu = session.exec(select(Submenu).where(Submenu.id == dish.submenu_id)).first()
+    menu = session.exec(select(Menu).where(Menu.id == submenu.menu_id)).first()
+
+    menu_retrieve = client.get(f"api/v1/menus/{menu.id}/").json()
+
+    assert menu_retrieve["submenus_count"] == 1
+    assert menu_retrieve["dishes_count"] == 1
 
 
 if __name__ == "__main__":

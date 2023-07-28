@@ -2,10 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 
+from app.common.tests import create_test_object
 from app.config import Config
 from app.db import get_session
 from app.main import app
-from app.models import Menu, Submenu, Dish
 
 TEST_SQLALCHEMY_URI = (
     f"postgresql://"
@@ -48,33 +48,14 @@ def client():
 
 @pytest.fixture()
 def menu(session):
-    menu = Menu(title="Test title", description="Test description")
-    session.add(menu)
-    session.commit()
-    yield menu
-    session.delete(menu)
-    session.commit()
+    yield from create_test_object("app.models.Menu", session)
 
 
 @pytest.fixture()
 def submenu(menu, session):
-    submenu = Submenu(
-        title="Test title", description="Test description", menu_id=menu.id
-    )
-    session.add(submenu)
-    session.commit()
-    yield submenu
-    session.delete(submenu)
-    session.commit()
+    yield from create_test_object("app.models.Submenu", session, menu_id=menu.id)
 
 
 @pytest.fixture()
 def dish(submenu, session):
-    dish = Dish(
-        title="Test title", description="Test description", price="19.99", submenu_id=submenu.id
-    )
-    session.add(dish)
-    session.commit()
-    yield dish
-    session.delete(dish)
-    session.commit()
+    yield from create_test_object("app.models.Dish", session, submenu_id=submenu.id)
