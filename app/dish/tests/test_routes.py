@@ -1,25 +1,28 @@
 from http import HTTPStatus
+from uuid import UUID
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.common.tests import (get_model_objects_count,
+from app.common.tests import (delete_first_object, get_model_objects_count,
                               is_response_match_object_fields)
 from app.models import Dish, Submenu
 
 
-def get_base_url(menu_id, submenu_id):
+def get_base_url(menu_id: UUID, submenu_id: UUID):
     return f"api/v1/menus/{menu_id}/submenus/{submenu_id}/"
 
 
-def get_related_submenu(dish, session):
-    return session.exec(select(Submenu).where(Submenu.id == dish.submenu_id)).first()
+async def get_related_submenu(dish: Dish, session: AsyncSession):
+    result = await session.execute(select(Submenu).where(Submenu.id == dish.submenu_id))
+    return result.first()
 
 
-def test_dish_retrieve(dish, client, session):
-    submenu = get_related_submenu(dish, session)
-    response = client.get(
-        get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/"
+async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSession):
+    response = await client.get(
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f"dishes/{dish.id}/"
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -30,21 +33,24 @@ def test_dish_retrieve(dish, client, session):
     )
 
 
-def test_dish_list(dish, client, session):
-    submenu = get_related_submenu(dish, session)
-    response = client.get(get_base_url(submenu.menu_id, submenu.id) + "dishes/")
+async def test_dish_list(dish: Dish, client: AsyncClient, session: AsyncSession):
+    response = await client.get(
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + "dishes/"
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
 
 
-def test_dish_create(submenu, client, session):
+async def test_dish_create(
+    submenu: Submenu, client: AsyncClient, session: AsyncSession
+):
     data = {
         "title": "Test title",
         "description": "Test description",
         "price": "19.99",
     }
-    response = client.post(
+    response = await client.post(
         get_base_url(submenu.menu_id, submenu.id) + "dishes/",
         json=data,
     )
@@ -55,18 +61,19 @@ def test_dish_create(submenu, client, session):
         data,
         ("title", "description", "price"),
     )
-    assert get_model_objects_count(Dish, session) == 1
+    assert await get_model_objects_count(Dish, session) == 1
+
+    await delete_first_object(select(Dish), session)
 
 
-def test_dish_update(dish, client, session):
+async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSession):
     data = {
         "title": "Updated title",
         "description": "Updated description",
         "price": "12.33",
     }
-    submenu = get_related_submenu(dish, session)
-    response = client.patch(
-        get_base_url(submenu.menu_id, submenu.id) + f"/dishes/{dish.id}/",
+    response = await client.patch(
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f"dishes/{dish.id}/",
         json=data,
     )
 
@@ -76,14 +83,13 @@ def test_dish_update(dish, client, session):
     )
 
 
-def test_dish_delete(dish, client, session):
-    submenu = get_related_submenu(dish, session)
-    response = client.delete(
-        get_base_url(submenu.menu_id, submenu.id) + f"dishes/{dish.id}/"
+async def test_dish_delete(dish: Dish, client: AsyncClient, session: AsyncSession):
+    response = await client.delete(
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f"dishes/{dish.id}/"
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert get_model_objects_count(Dish, session) == 0
+    assert await get_model_objects_count(Dish, session) == 0
 
 
 if __name__ == "__main__":

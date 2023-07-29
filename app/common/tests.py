@@ -14,3 +14,10 @@ def is_response_match_object_fields(response_data, obj, fields):
 async def get_model_objects_count(model, session):
     result = await session.execute(select(model))
     return len(result.all())
+
+
+async def delete_first_object(query, session):
+    objs = await session.execute(query)
+    obj = objs.first()[0]
+    await session.delete(obj)
+    await session.commit()

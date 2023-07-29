@@ -5,9 +5,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.common.tests import (get_model_objects_count,
+from app.common.tests import (delete_first_object, get_model_objects_count,
                               is_response_match_object_fields)
-from app.models import Menu, Submenu
+from app.models import Dish, Menu, Submenu
 
 
 def get_base_url(menu_id):
@@ -15,7 +15,9 @@ def get_base_url(menu_id):
 
 
 async def test_submenu_retrieve(submenu: Submenu, client: AsyncClient):
-    response = await client.get(get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/")
+    response = await client.get(
+        get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/"
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
@@ -32,57 +34,61 @@ async def test_submenu_list(submenu: Submenu, client: AsyncClient):
     assert len(response.json()) == 1
 
 
-# async def test_submenu_create(menu: Menu, client: AsyncClient, session: AsyncSession):
-#     data = {
-#         "title": "Test title",
-#         "description": "Test description",
-#     }
-#     response = await client.post(
-#         get_base_url(menu.id) + "submenus/",
-#         json=data,
-#     )
-#
-#     assert response.status_code == HTTPStatus.CREATED
-#     assert is_response_match_object_fields(
-#         response.json(),
-#         data,
-#         ("title", "description"),
-#     )
-#     assert await get_model_objects_count(Submenu, session) == 1
-#
-#
-# def test_submenu_update(submenu, client):
-#     data = {
-#         "title": "Updated title",
-#         "description": "Updated description",
-#     }
-#     response = client.patch(
-#         get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/",
-#         json=data,
-#     )
-#
-#     assert response.status_code == HTTPStatus.OK
-#     assert is_response_match_object_fields(
-#         response.json(), data, ("title", "description")
-#     )
-#
-#
-# def test_submenu_delete(submenu, client, session):
-#     response = client.delete(get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/")
-#
-#     assert response.status_code == HTTPStatus.OK
-#     assert get_model_objects_count(Submenu, session) == 0
-#
-#
-# def test_counting(dish, client, session):
-#     submenu = session.exec(select(Submenu).where(Submenu.id == dish.submenu_id)).first()
-#     menu = session.exec(select(Menu).where(Menu.id == submenu.menu_id)).first()
-#
-#     submenu_retrieve = client.get(
-#         get_base_url(menu.id) + f"submenus/{submenu.id}/"
-#     ).json()
-#
-#     assert submenu_retrieve["dishes_count"] == 1
+async def test_submenu_create(menu: Menu, client: AsyncClient, session: AsyncSession):
+    data = {
+        "title": "Test title",
+        "description": "Test description",
+    }
+    response = await client.post(
+        get_base_url(menu.id) + "submenus/",
+        json=data,
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert is_response_match_object_fields(
+        response.json(),
+        data,
+        ("title", "description"),
+    )
+    assert await get_model_objects_count(Submenu, session) == 1
+
+    await delete_first_object(select(Submenu), session)
+
+
+async def test_submenu_update(submenu: Submenu, client: AsyncClient):
+    data = {
+        "title": "Updated title",
+        "description": "Updated description",
+    }
+    response = await client.patch(
+        get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/",
+        json=data,
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert is_response_match_object_fields(
+        response.json(), data, ("title", "description")
+    )
+
+
+async def test_submenu_delete(
+    submenu: Submenu, client: AsyncClient, session: AsyncSession
+):
+    response = await client.delete(
+        get_base_url(submenu.menu_id) + f"submenus/{submenu.id}/"
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert await get_model_objects_count(Submenu, session) == 0
+
+
+async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
+    submenu_retrieve = await client.get(
+        get_base_url(dish.submenu.menu_id) + f"submenus/{dish.submenu_id}/"
+    )
+    response = submenu_retrieve.json()
+
+    assert response["dishes_count"] == 1
 
 
 if __name__ == "__main__":

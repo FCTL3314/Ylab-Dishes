@@ -5,9 +5,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.common.tests import (get_model_objects_count,
+from app.common.tests import (delete_first_object, get_model_objects_count,
                               is_response_match_object_fields)
+from app.menu.repository import MenuRepository
 from app.models import Dish, Menu, Submenu
+from app.submenu.repository import SubmenuRepository
 
 
 async def test_menu_retrieve(menu: Menu, client: AsyncClient):
@@ -46,10 +48,7 @@ async def test_menu_create(client: AsyncClient, session: AsyncSession):
     )
     assert await get_model_objects_count(Menu, session) == 1
 
-    menus = await session.execute(select(Menu))
-    menu = menus.first()[0]
-    await session.delete(menu)
-    await session.commit()
+    await delete_first_object(select(Menu), session)
 
 
 async def test_menu_update(menu: Menu, client: AsyncClient):
@@ -76,14 +75,7 @@ async def test_menu_delete(menu: Menu, client: AsyncClient, session: AsyncSessio
 
 
 async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
-    submenu_request = await session.execute(
-        select(Submenu).where(Submenu.id == dish.submenu_id)
-    )
-    submenu = submenu_request.first()[0]
-    menu_request = await session.execute(select(Menu).where(Menu.id == submenu.menu_id))
-    menu = menu_request.first()[0]
-
-    menu_retrieve = await client.get(f"api/v1/menus/{menu.id}/")
+    menu_retrieve = await client.get(f"api/v1/menus/{dish.submenu.menu_id}/")
     response = menu_retrieve.json()
 
     assert response["submenus_count"] == 1
