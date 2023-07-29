@@ -1,5 +1,4 @@
 from sqlalchemy import distinct, func, select
-from sqlmodel import select as sqlmodel_select
 
 from app.common.repository import BaseCRUDRepository
 from app.models import Dish, Menu, Submenu
@@ -9,45 +8,46 @@ MENU_NOT_FOUND_MESSAGE = "menu not found"
 
 
 class MenuRepository(BaseCRUDRepository):
-    base_query = sqlmodel_select(Menu)
+    base_query = select(Menu)
 
     @staticmethod
-    def get_by_id(menu_id, session):
-        return get_first_or_404(
-            sqlmodel_select(Menu).where(Menu.id == menu_id),
+    async def get_by_id(menu_id, session, orm_object=False):
+        result = await get_first_or_404(
+            select(Menu).where(Menu.id == menu_id),
             session,
             MENU_NOT_FOUND_MESSAGE,
         )
+        return result[0] if orm_object else result
 
-    def retrieve(self, menu_id, session):
+    async def retrieve(self, menu_id, session):
         query = self.base_query.where(Menu.id == menu_id)
-        return get_first_or_404(query, session, MENU_NOT_FOUND_MESSAGE)
+        return await get_first_or_404(query, session, MENU_NOT_FOUND_MESSAGE)
 
-    def list(self, session):
-        return session.exec(self.base_query).all()
+    async def list(self, session):
+        result = await session.execute(self.base_query)
+        return result.all()
 
-    def create(self, menu, session):
+    async def create(self, menu, session):
         session.add(menu)
-        session.commit()
-        session.refresh(menu)
-        return self.retrieve(menu.id, session)
+        await session.commit()
+        await session.refresh(menu)
+        return await self.retrieve(menu.id, session)
 
-    def update(self, menu_id, updated_menu, session):
-        menu = self.get_by_id(menu_id, session)
+    async def update(self, menu_id, updated_menu, session):
+        menu = await self.get_by_id(menu_id, session, orm_object=True)
 
         updated_menu_dict = updated_menu.dict(exclude_unset=True)
         for key, val in updated_menu_dict.items():
             setattr(menu, key, val)
 
-        session.add(menu, session)
-        session.commit()
-        session.refresh(menu)
-        return self.retrieve(menu_id, session)
+        await session.commit()
+        await session.refresh(menu)
+        return await self.retrieve(menu_id, session)
 
-    def delete(self, menu_id, session):
-        menu = self.get_by_id(menu_id, session)
-        session.delete(menu)
-        session.commit()
+    async def delete(self, menu_id, session):
+        menu = await self.get_by_id(menu_id, session, orm_object=True)
+        await session.delete(menu)
+        await session.commit()
         return {"status": True, "message": "The menu has been deleted"}
 
 

@@ -1,15 +1,17 @@
 from http import HTTPStatus
 
 import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.common.tests import (get_model_objects_count,
                               is_response_match_object_fields)
-from app.models import Menu, Submenu
+from app.models import Dish, Menu, Submenu
 
 
-def test_menu_retrieve(menu, client):
-    response = client.get(f"api/v1/menus/{menu.id}/")
+async def test_menu_retrieve(menu: Menu, client: AsyncClient):
+    response = await client.get(f"api/v1/menus/{menu.id}/")
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
@@ -19,19 +21,19 @@ def test_menu_retrieve(menu, client):
     )
 
 
-def test_menu_list(menu, client):
-    response = client.get("api/v1/menus/")
+async def test_menu_list(menu: Menu, client: AsyncClient):
+    response = await client.get("api/v1/menus/")
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
 
 
-def test_menu_create(client, session):
+async def test_menu_create(client: AsyncClient, session: AsyncSession):
     data = {
         "title": "Test title",
         "description": "Test description",
     }
-    response = client.post(
+    response = await client.post(
         "api/v1/menus/",
         json=data,
     )
@@ -42,19 +44,20 @@ def test_menu_create(client, session):
         data,
         ("title", "description"),
     )
-    assert get_model_objects_count(Menu, session) == 1
+    assert await get_model_objects_count(Menu, session) == 1
 
-    menu = session.exec(select(Menu)).first()
-    session.delete(menu)
-    session.commit()
+    menus = await session.execute(select(Menu))
+    menu = menus.first()[0]
+    await session.delete(menu)
+    await session.commit()
 
 
-def test_menu_update(menu, client):
+async def test_menu_update(menu: Menu, client: AsyncClient):
     data = {
         "title": "Updated title",
         "description": "Updated description",
     }
-    response = client.patch(
+    response = await client.patch(
         f"api/v1/menus/{menu.id}/",
         json=data,
     )
@@ -65,21 +68,26 @@ def test_menu_update(menu, client):
     )
 
 
-def test_menu_delete(menu, client, session):
-    response = client.delete(f"api/v1/menus/{menu.id}/")
+async def test_menu_delete(menu: Menu, client: AsyncClient, session: AsyncSession):
+    response = await client.delete(f"api/v1/menus/{menu.id}/")
 
     assert response.status_code == HTTPStatus.OK
-    assert get_model_objects_count(Menu, session) == 0
+    assert await get_model_objects_count(Menu, session) == 0
 
 
-def test_counting(dish, client, session):
-    submenu = session.exec(select(Submenu).where(Submenu.id == dish.submenu_id)).first()
-    menu = session.exec(select(Menu).where(Menu.id == submenu.menu_id)).first()
+async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
+    submenu_request = await session.execute(
+        select(Submenu).where(Submenu.id == dish.submenu_id)
+    )
+    submenu = submenu_request.first()[0]
+    menu_request = await session.execute(select(Menu).where(Menu.id == submenu.menu_id))
+    menu = menu_request.first()[0]
 
-    menu_retrieve = client.get(f"api/v1/menus/{menu.id}/").json()
+    menu_retrieve = await client.get(f"api/v1/menus/{menu.id}/")
+    response = menu_retrieve.json()
 
-    assert menu_retrieve["submenus_count"] == 1
-    assert menu_retrieve["dishes_count"] == 1
+    assert response["submenus_count"] == 1
+    assert response["dishes_count"] == 1
 
 
 if __name__ == "__main__":

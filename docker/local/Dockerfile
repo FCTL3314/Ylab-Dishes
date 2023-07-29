@@ -5,8 +5,6 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /opt/YlabDishes
 
-RUN apt -y update && apt -y upgrade
-
 COPY ./ ./
 
 RUN pip install --upgrade pip && pip install -r requirements.txt

@@ -11,14 +11,6 @@ def is_response_match_object_fields(response_data, obj, fields):
     return True
 
 
-def get_model_objects_count(model, session):
-    return len(session.exec(select(model)).all())
-
-
-def create_test_object(model_path, session, **kwargs):
-    obj = mixer.blend(model_path, **kwargs)
-    session.add(obj)
-    session.commit()
-    yield obj
-    session.delete(obj)
-    session.commit()
+async def get_model_objects_count(model, session):
+    result = await session.execute(select(model))
+    return len(result.all())

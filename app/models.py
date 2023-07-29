@@ -13,7 +13,8 @@ class Menu(MenuBase, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
 
     submenus: list["Submenu"] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete"}, back_populates="menu"
+        sa_relationship_kwargs={"cascade": "all,delete,delete-orphan", "lazy": "selectin"},
+        back_populates="menu",
     )
 
 
@@ -23,7 +24,8 @@ class Submenu(SubmenuBase, table=True):
 
     menu: "Menu" = Relationship(back_populates="submenus")
     dishes: list["Dish"] = Relationship(
-        sa_relationship_kwargs={"cascade": "delete"}, back_populates="submenu"
+        sa_relationship_kwargs={"cascade": "all,delete,delete-orphan", "lazy": "selectin"},
+        back_populates="submenu",
     )
 
 

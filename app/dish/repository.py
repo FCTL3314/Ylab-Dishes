@@ -1,4 +1,4 @@
-from sqlmodel import select as sqlmodel_select
+from sqlalchemy import select
 
 from app.common.repository import BaseCRUDRepository
 from app.models import Dish, Submenu
@@ -12,7 +12,13 @@ class DishRepository(BaseCRUDRepository):
     @staticmethod
     def get_base_query(menu_id, submenu_id):
         return (
-            sqlmodel_select(Dish)
+            select(
+                Dish.id,
+                Dish.title,
+                Dish.description,
+                Dish.price,
+                Dish.submenu_id,
+            )
             .join(Submenu, Dish.submenu_id == Submenu.id)
             .where(
                 Dish.submenu_id == submenu_id,
@@ -21,49 +27,60 @@ class DishRepository(BaseCRUDRepository):
         )
 
     @staticmethod
-    def get_by_id(menu_id, submenu_id, dish_id, session):
-        return get_first_or_404(
-            DishRepository.get_base_query(menu_id, submenu_id).where(
-                Dish.id == dish_id
+    async def get_by_id(menu_id, submenu_id, dish_id, session, orm_object=False):
+        result = await get_first_or_404(
+            select(Dish)
+            .join(Submenu, Dish.submenu_id == Submenu.id)
+            .where(
+                Submenu.menu_id == menu_id,
+                Dish.submenu_id == submenu_id,
+                Dish.id == dish_id,
             ),
             session,
             DISH_NOT_FOUND_MESSAGE,
         )
+        return result[0] if orm_object else result
 
-    def retrieve(self, menu_id, submenu_id, dish_id, session):
-        return get_first_or_404(
+    async def retrieve(self, menu_id, submenu_id, dish_id, session):
+        return await get_first_or_404(
             self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id),
             session,
             DISH_NOT_FOUND_MESSAGE,
         )
 
-    def list(self, menu_id, submenu_id, session):
-        return session.exec(self.get_base_query(menu_id, submenu_id)).all()
+    async def list(self, menu_id, submenu_id, session):
+        result = await session.execute(self.get_base_query(menu_id, submenu_id))
+        return result.all()
 
-    def create(self, menu_id, submenu_id, dish, session):
-        submenu = SubmenuRepository.get_by_id(menu_id, submenu_id, session)
+    async def create(self, menu_id, submenu_id, dish, session):
+        submenu = await SubmenuRepository.get_by_id(
+            menu_id, submenu_id, session, orm_object=True
+        )
         submenu.dishes.append(dish)
         session.add(dish)
-        session.commit()
-        session.refresh(dish)
+        await session.commit()
+        await session.refresh(dish)
         return dish
 
-    def update(self, menu_id, submenu_id, dish_id, updated_dish, session):
-        dish = self.get_by_id(menu_id, submenu_id, dish_id, session)
+    async def update(self, menu_id, submenu_id, dish_id, updated_dish, session):
+        dish = await self.get_by_id(
+            menu_id, submenu_id, dish_id, session, orm_object=True
+        )
 
         updated_dish_dict = updated_dish.dict(exclude_unset=True)
 
         for key, val in updated_dish_dict.items():
             setattr(dish, key, val)
 
-        session.add(dish)
-        session.commit()
-        session.refresh(dish)
+        await session.commit()
+        await session.refresh(dish)
         return dish
 
-    def delete(self, menu_id, submenu_id, dish_id, session):
-        dish = self.get_by_id(menu_id, submenu_id, dish_id, session)
+    async def delete(self, menu_id, submenu_id, dish_id, session):
+        dish = await self.get_by_id(
+            menu_id, submenu_id, dish_id, session, orm_object=True
+        )
 
-        session.delete(dish)
-        session.commit()
+        await session.delete(dish)
+        await session.commit()
         return {"status": True, "message": "The dish has been deleted"}

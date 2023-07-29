@@ -15,28 +15,33 @@ router = APIRouter()
 menu_repository = MenuWithCountingRepository()
 
 
-@router.get("/{menu_id}/", response_model=MenuResponse)
+@router.get("/{menu_id}/")
 async def menu_retrieve(menu_id: UUID, session: Session = ActiveSession):
-    return menu_repository.retrieve(menu_id, session)
+    response = await menu_repository.retrieve(menu_id, session)
+    return response
 
 
 @router.get("/", response_model=list[MenuResponse])
 async def menu_list(session: Session = ActiveSession):
-    return menu_repository.list(session)
+    response = await menu_repository.list(session)
+    return response
 
 
 @router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
 async def menu_create(menu: Menu, session: Session = ActiveSession):
-    return menu_repository.create(menu, session)
+    response = await menu_repository.create(menu, session)
+    return response
 
 
 @router.patch("/{menu_id}/", response_model=MenuResponse)
 async def menu_patch(
     menu_id: UUID, updated_menu: Menu, session: Session = ActiveSession
 ):
-    return menu_repository.update(menu_id, updated_menu, session)
+    response = await menu_repository.update(menu_id, updated_menu, session)
+    return response
 
 
 @router.delete("/{menu_id}/")
 async def menu_delete(menu_id: UUID, session: Session = ActiveSession):
-    return menu_repository.delete(menu_id, session)
+    response = await menu_repository.delete(menu_id, session)
+    return response
