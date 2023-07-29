@@ -61,34 +61,35 @@ async def client() -> AsyncGenerator | None:
         yield ac
 
 
-@pytest.fixture()
-async def menu(session: AsyncSession):
-    menu = mixer.blend("app.models.Menu")
+async def create_test_object(model_path, session: AsyncSession, **kwargs):
+    menu = mixer.blend(model_path, **kwargs)
     session.add(menu)
     await session.commit()
     await session.refresh(menu)
-    yield menu
-    await session.delete(menu)
+    return menu
+
+
+async def remove_test_object(obj, session: AsyncSession):
+    await session.delete(obj)
     await session.commit()
+
+
+@pytest.fixture()
+async def menu(session: AsyncSession):
+    menu = await create_test_object("app.models.Menu", session)
+    yield menu
+    await remove_test_object(menu, session)
 
 
 @pytest.fixture()
 async def submenu(menu: Menu, session: AsyncSession):
-    submenu = mixer.blend("app.models.Submenu", menu_id=menu.id)
-    session.add(submenu)
-    await session.commit()
-    await session.refresh(submenu)
+    submenu = await create_test_object("app.models.Submenu", session, menu_id=menu.id)
     yield submenu
-    await session.delete(submenu)
-    await session.commit()
+    await remove_test_object(submenu, session)
 
 
 @pytest.fixture()
 async def dish(submenu: Submenu, session: AsyncSession):
-    dish = mixer.blend("app.models.Dish", submenu_id=submenu.id)
-    session.add(dish)
-    await session.commit()
-    await session.refresh(dish)
+    dish = await create_test_object("app.models.Dish", session, submenu_id=submenu.id)
     yield dish
-    await session.delete(dish)
-    await session.commit()
+    await remove_test_object(dish, session)

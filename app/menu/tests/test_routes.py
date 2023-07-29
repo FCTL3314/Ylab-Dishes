@@ -7,9 +7,7 @@ from sqlmodel import select
 
 from app.common.tests import (delete_first_object, get_model_objects_count,
                               is_response_match_object_fields)
-from app.menu.repository import MenuRepository
-from app.models import Dish, Menu, Submenu
-from app.submenu.repository import SubmenuRepository
+from app.models import Dish, Menu
 
 
 async def test_menu_retrieve(menu: Menu, client: AsyncClient):

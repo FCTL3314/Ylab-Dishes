@@ -1,4 +1,3 @@
-from mixer.backend.sqlalchemy import mixer
 from sqlmodel import select
 
 
