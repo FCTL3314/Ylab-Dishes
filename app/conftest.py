@@ -8,17 +8,17 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
-from app.config import Config
+from app.config import TestConfig
 from app.db import get_async_session
 from app.main import app
 from app.models import Menu, Submenu
 
 TEST_SQLALCHEMY_URI = (
     f"postgresql+asyncpg://"
-    f"{Config.TEST_DATABASE_USER}:"
-    f"{Config.TEST_DATABASE_PASSWORD}@"
-    f"{Config.TEST_DATABASE_HOST}/"
-    f"{Config.TEST_DATABASE_NAME}"
+    f"{TestConfig.TEST_DATABASE_USER}:"
+    f"{TestConfig.TEST_DATABASE_PASSWORD}@"
+    f"{TestConfig.TEST_DATABASE_HOST}/"
+    f"{TestConfig.TEST_DATABASE_NAME}"
 )
 test_async_engine = create_async_engine(TEST_SQLALCHEMY_URI)
 async_session_maker = sessionmaker(bind=test_async_engine, class_=AsyncSession)
