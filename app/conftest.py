@@ -61,7 +61,7 @@ async def client() -> AsyncGenerator | None:
         yield ac
 
 
-async def create_test_object(model_path, session: AsyncSession, **kwargs):
+async def create_test_object(model_path: str, session: AsyncSession, **kwargs):
     menu = mixer.blend(model_path, **kwargs)
     session.add(menu)
     await session.commit()

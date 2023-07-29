@@ -1,4 +1,7 @@
+from uuid import UUID
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.repository import BaseCRUDRepository
 from app.models import Dish, Submenu
@@ -10,7 +13,7 @@ DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 class DishRepository(BaseCRUDRepository):
     @staticmethod
-    def get_base_query(menu_id, submenu_id):
+    def get_base_query(menu_id: UUID, submenu_id: UUID):
         return (
             select(
                 Dish.id,
@@ -27,7 +30,13 @@ class DishRepository(BaseCRUDRepository):
         )
 
     @staticmethod
-    async def get_by_id(menu_id, submenu_id, dish_id, session, orm_object=False):
+    async def get_by_id(
+        menu_id: UUID,
+        submenu_id: UUID,
+        dish_id: UUID,
+        session: AsyncSession,
+        orm_object: bool = False,
+    ):
         result = await get_first_or_404(
             select(Dish)
             .join(Submenu, Dish.submenu_id == Submenu.id)
@@ -41,18 +50,22 @@ class DishRepository(BaseCRUDRepository):
         )
         return result[0] if orm_object else result
 
-    async def retrieve(self, menu_id, submenu_id, dish_id, session):
+    async def retrieve(
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+    ):
         return await get_first_or_404(
             self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id),
             session,
             DISH_NOT_FOUND_MESSAGE,
         )
 
-    async def list(self, menu_id, submenu_id, session):
+    async def list(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
         result = await session.execute(self.get_base_query(menu_id, submenu_id))
         return result.all()
 
-    async def create(self, menu_id, submenu_id, dish, session):
+    async def create(
+        self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
+    ):
         submenu = await SubmenuRepository.get_by_id(
             menu_id, submenu_id, session, orm_object=True
         )
@@ -62,7 +75,14 @@ class DishRepository(BaseCRUDRepository):
         await session.refresh(dish)
         return dish
 
-    async def update(self, menu_id, submenu_id, dish_id, updated_dish, session):
+    async def update(
+        self,
+        menu_id: UUID,
+        submenu_id: UUID,
+        dish_id: UUID,
+        updated_dish: Dish,
+        session: AsyncSession,
+    ):
         dish = await self.get_by_id(
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
@@ -76,7 +96,9 @@ class DishRepository(BaseCRUDRepository):
         await session.refresh(dish)
         return dish
 
-    async def delete(self, menu_id, submenu_id, dish_id, session):
+    async def delete(
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+    ):
         dish = await self.get_by_id(
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
