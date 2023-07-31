@@ -11,9 +11,9 @@ SQLALCHEMY_URI = (
     f"{Config.DATABASE_NAME}"
 )
 async_engine = create_async_engine(SQLALCHEMY_URI)
+async_session_maker = sessionmaker(bind=async_engine, class_=AsyncSession)
 
 
 async def get_async_session() -> AsyncSession:
-    async_session = sessionmaker(bind=async_engine, class_=AsyncSession)
-    async with async_session() as session:
+    async with async_session_maker() as session:
         yield session

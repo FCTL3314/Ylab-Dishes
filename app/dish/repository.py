@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import BaseCRUDRepository
+from app.common.repository import AbstractCRUDRepository
 from app.models import Dish, Submenu
 from app.submenu.repository import SubmenuRepository
 from app.utils import get_first_or_404
@@ -11,7 +11,7 @@ from app.utils import get_first_or_404
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
-class DishRepository(BaseCRUDRepository):
+class DishRepository(AbstractCRUDRepository):
     @staticmethod
     def get_base_query(menu_id: UUID, submenu_id: UUID):
         return (

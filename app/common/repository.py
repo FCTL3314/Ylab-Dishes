@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseCRUDRepository(ABC):
+class AbstractCRUDRepository(ABC):
     @abstractmethod
     def retrieve(self, *args, **kwargs):
         pass

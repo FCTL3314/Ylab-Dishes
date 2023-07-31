@@ -5,8 +5,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.common.tests import (delete_first_object, get_model_objects_count,
-                              is_response_match_object_fields)
+from app.common.tests import (
+    delete_first_object,
+    get_model_objects_count,
+    is_response_match_object_fields,
+)
 from app.models import Dish, Menu, Submenu
 
 

@@ -2,45 +2,42 @@ from http import HTTPStatus
 from uuid import UUID
 
 from fastapi import APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import ActiveSession
-from app.menu.repository import MenuWithCountingRepository
+from app.dependencies import ActiveMenuService
+from app.menu.services import MenuService
 from app.menu.schemas import MenuResponse
 from app.models import Menu
 
 router = APIRouter()
 
-menu_repository = MenuWithCountingRepository()
 
-
-@router.get("/{menu_id}/")
-async def menu_retrieve(menu_id: UUID, session: AsyncSession = ActiveSession):
-    response = await menu_repository.retrieve(menu_id, session)
+@router.get("/{menu_id}/", response_model=MenuResponse)
+async def menu_retrieve(menu_id: UUID, menu_service: MenuService = ActiveMenuService):
+    response = await menu_service.retrieve(menu_id)
     return response
 
 
 @router.get("/", response_model=list[MenuResponse])
-async def menu_list(session: AsyncSession = ActiveSession):
-    response = await menu_repository.list(session)
+async def menu_list(menu_service: MenuService = ActiveMenuService):
+    response = await menu_service.list()
     return response
 
 
 @router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
-async def menu_create(menu: Menu, session: AsyncSession = ActiveSession):
-    response = await menu_repository.create(menu, session)
+async def menu_create(menu: Menu, menu_service: MenuService = ActiveMenuService):
+    response = await menu_service.create(menu)
     return response
 
 
 @router.patch("/{menu_id}/", response_model=MenuResponse)
 async def menu_patch(
-    menu_id: UUID, updated_menu: Menu, session: AsyncSession = ActiveSession
+    menu_id: UUID, updated_menu: Menu, menu_service: MenuService = ActiveMenuService
 ):
-    response = await menu_repository.update(menu_id, updated_menu, session)
+    response = await menu_service.update(menu_id, updated_menu)
     return response
 
 
 @router.delete("/{menu_id}/")
-async def menu_delete(menu_id: UUID, session: AsyncSession = ActiveSession):
-    response = await menu_repository.delete(menu_id, session)
+async def menu_delete(menu_id: UUID, menu_service: MenuService = ActiveMenuService):
+    response = await menu_service.delete(menu_id)
     return response
