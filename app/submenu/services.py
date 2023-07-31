@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.menu.repository import MenuRepository
 from app.menu.services import MENU_NOT_FOUND_MESSAGE
 from app.models import Submenu
 from app.utils import is_obj_exists_or_404
@@ -10,8 +11,7 @@ SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
 
 
 class SubmenuService:
-    def __init__(self, menu_repository, repository):
-        self.menu_repository = menu_repository()
+    def __init__(self, repository):
         self.repository = repository()
 
     async def retrieve(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
@@ -23,7 +23,7 @@ class SubmenuService:
         return await self.repository.list(menu_id, session)
 
     async def create(self, menu_id: UUID, submenu: Submenu, session: AsyncSession):
-        menu = await self.menu_repository.get_by_id(menu_id, session, orm_object=True)
+        menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.create(menu, submenu, session)
 
