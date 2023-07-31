@@ -3,15 +3,13 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import AbstractCRUDRepository
+from app.common.repository import AbstractRepository
 from app.models import Dish, Submenu
-from app.submenu.repository import SubmenuRepository
-from app.utils import get_first_or_404
 
 DISH_NOT_FOUND_MESSAGE = "dish not found"
 
 
-class DishRepository(AbstractCRUDRepository):
+class DishRepository(AbstractRepository):
     @staticmethod
     def get_base_query(menu_id: UUID, submenu_id: UUID):
         return (
@@ -49,14 +47,14 @@ class DishRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         return result.first()[0] if orm_object else result.first()
 
-    async def retrieve(
+    async def get(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
     ):
         stmt = self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id)
         result = await session.execute(stmt)
         return result.first()
 
-    async def list(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
+    async def all(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
         result = await session.execute(self.get_base_query(menu_id, submenu_id))
         return result.all()
 

@@ -1,23 +1,11 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractCRUDRepository(ABC):
+class AbstractRepository(ABC):
     @abstractmethod
-    def retrieve(self, *args, **kwargs):
-        pass
+    def get(self, *args, **kwargs):
+        raise NotImplementedError
 
     @abstractmethod
-    def list(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def create(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def update(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def delete(self, *args, **kwargs):
-        pass
+    def all(self, *args, **kwargs):
+        raise NotImplementedError

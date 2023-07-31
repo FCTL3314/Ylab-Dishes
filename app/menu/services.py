@@ -2,23 +2,21 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.services import AbstractCRUDService
 from app.models import Menu
 from app.utils import is_obj_exists_or_404
 
 MENU_NOT_FOUND_MESSAGE = "menu not found"
 
 
-class MenuService:
-    def __init__(self, repository):
-        self.repository = repository()
-
+class MenuService(AbstractCRUDService):
     async def retrieve(self, menu_id: UUID, session: AsyncSession):
-        menu = await self.repository.retrieve(menu_id, session)
+        menu = await self.repository.get(menu_id, session)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
     async def list(self, session: AsyncSession):
-        return await self.repository.list(session)
+        return await self.repository.all(session)
 
     async def create(self, menu: Menu, session: AsyncSession):
         return await self.repository.create(menu, session)

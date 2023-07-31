@@ -3,11 +3,11 @@ from uuid import UUID
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import AbstractCRUDRepository
+from app.common.repository import AbstractRepository
 from app.models import Dish, Menu, Submenu
 
 
-class SubmenuRepository(AbstractCRUDRepository):
+class SubmenuRepository(AbstractRepository):
     @staticmethod
     def get_base_query(menu_id: UUID):
         return select(Submenu).where(Submenu.menu_id == menu_id)
@@ -20,14 +20,14 @@ class SubmenuRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         return result.first()[0] if orm_object else result.first()
 
-    async def retrieve(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
+    async def get(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
         stmt = self.get_base_query(menu_id).where(
             Submenu.id == submenu_id,
         )
         result = await session.execute(stmt)
         return result.first()
 
-    async def list(self, menu_id: UUID, session: AsyncSession):
+    async def all(self, menu_id: UUID, session: AsyncSession):
         result = await session.execute(self.get_base_query(menu_id))
         return result.all()
 
@@ -36,7 +36,7 @@ class SubmenuRepository(AbstractCRUDRepository):
         session.add(submenu)
         await session.commit()
         await session.refresh(submenu)
-        return await self.retrieve(submenu.menu_id, submenu.id, session)
+        return await self.get(submenu.menu_id, submenu.id, session)
 
     async def update(
         self,
@@ -50,7 +50,7 @@ class SubmenuRepository(AbstractCRUDRepository):
 
         await session.commit()
         await session.refresh(submenu)
-        return await self.retrieve(submenu.menu_id, submenu.id, session)
+        return await self.get(submenu.menu_id, submenu.id, session)
 
     async def delete(self, submenu: Submenu, session: AsyncSession):
         await session.delete(submenu)

@@ -3,11 +3,11 @@ from uuid import UUID
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import AbstractCRUDRepository
+from app.common.repository import AbstractRepository
 from app.models import Dish, Menu, Submenu
 
 
-class MenuRepository(AbstractCRUDRepository):
+class MenuRepository(AbstractRepository):
     base_query = select(Menu)
 
     @staticmethod
@@ -16,12 +16,12 @@ class MenuRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         return result.first()[0] if orm_object else result.first()
 
-    async def retrieve(self, menu_id: UUID, session: AsyncSession):
+    async def get(self, menu_id: UUID, session: AsyncSession):
         stmt = self.base_query.where(Menu.id == menu_id)
         result = await session.execute(stmt)
         return result.first()
 
-    async def list(self, session: AsyncSession):
+    async def all(self, session: AsyncSession):
         result = await session.execute(self.base_query)
         return result.all()
 
@@ -29,7 +29,7 @@ class MenuRepository(AbstractCRUDRepository):
         session.add(menu)
         await session.commit()
         await session.refresh(menu)
-        return await self.retrieve(menu.id, session)
+        return await self.get(menu.id, session)
 
     async def update(self, menu: Menu, updated_menu: Menu, session: AsyncSession):
         updated_menu_dict = updated_menu.dict(exclude_unset=True)
@@ -39,7 +39,7 @@ class MenuRepository(AbstractCRUDRepository):
 
         await session.commit()
         await session.refresh(menu)
-        return await self.retrieve(menu.id, session)
+        return await self.get(menu.id, session)
 
     async def delete(self, menu: Menu, session: AsyncSession):
         await session.delete(menu)
