@@ -13,3 +13,8 @@ async def get_first_or_404(query, session, not_found_msg="Object not found"):
     if obj is None:
         raise HTTPException(detail=not_found_msg, status_code=HTTPStatus.NOT_FOUND)
     return obj
+
+
+def is_obj_exists_or_404(obj, message):
+    if not obj:
+        raise HTTPException(detail=message, status_code=HTTPStatus.NOT_FOUND)
