@@ -15,10 +15,10 @@ from app.models import Menu, Submenu
 
 TEST_SQLALCHEMY_URI = (
     f"postgresql+asyncpg://"
-    f"{TestConfig.TEST_DATABASE_USER}:"
-    f"{TestConfig.TEST_DATABASE_PASSWORD}@"
-    f"{TestConfig.TEST_DATABASE_HOST}/"
-    f"{TestConfig.TEST_DATABASE_NAME}"
+    f"{TestConfig.DATABASE_USER}:"
+    f"{TestConfig.DATABASE_PASSWORD}@"
+    f"{TestConfig.DATABASE_HOST}/"
+    f"{TestConfig.DATABASE_NAME}"
 )
 test_async_engine = create_async_engine(TEST_SQLALCHEMY_URI)
 async_session_maker = sessionmaker(bind=test_async_engine, class_=AsyncSession)

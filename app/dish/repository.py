@@ -6,8 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.repository import AbstractRepository
 from app.models import Dish, Submenu
 
-DISH_NOT_FOUND_MESSAGE = "dish not found"
-
 
 class DishRepository(AbstractRepository):
     @staticmethod

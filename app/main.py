@@ -1,10 +1,11 @@
 from fastapi import APIRouter, FastAPI
 
+from app.config import Config
 from app.dish.routes import router as dish_router
 from app.menu.routes import router as menu_router
 from app.submenu.routes import router as submenu_router
 
-app = FastAPI()
+app = FastAPI(debug=Config.DEBUG)
 router = APIRouter(prefix="/api/v1")
 
 

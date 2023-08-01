@@ -6,6 +6,8 @@ load_dotenv()
 
 
 class Config:
+    DEBUG = os.environ.get("DEBUG")
+
     DATABASE_NAME = os.environ.get("DATABASE_NAME")
     DATABASE_HOST = os.environ.get("DATABASE_HOST")
     DATABASE_PORT = os.environ.get("DATABASE_PORT")
@@ -16,8 +18,8 @@ class Config:
 
 
 class TestConfig(Config):
-    TEST_DATABASE_NAME = os.environ.get("TEST_DATABASE_NAME")
-    TEST_DATABASE_HOST = os.environ.get("TEST_DATABASE_HOST")
-    TEST_DATABASE_PORT = os.environ.get("TEST_DATABASE_PORT")
-    TEST_DATABASE_USER = os.environ.get("TEST_DATABASE_USER")
-    TEST_DATABASE_PASSWORD = os.environ.get("TEST_DATABASE_PASSWORD")
+    DATABASE_NAME = os.environ.get("TEST_DATABASE_NAME")
+    DATABASE_HOST = os.environ.get("TEST_DATABASE_HOST")
+    DATABASE_PORT = os.environ.get("TEST_DATABASE_PORT")
+    DATABASE_USER = os.environ.get("TEST_DATABASE_USER")
+    DATABASE_PASSWORD = os.environ.get("TEST_DATABASE_PASSWORD")
