@@ -7,8 +7,11 @@ from app.menu.repository import MenuRepository
 from app.menu.services import MENU_NOT_FOUND_MESSAGE, CachedMenuService
 from app.models import Submenu
 from app.redis import get_cached_data_or_set_new, redis
-from app.submenu.constants import (SUBMENU_CACHE_TEMPLATE, SUBMENUS_CACHE_KEY,
-                                   SUBMENUS_CACHE_TIME)
+from app.submenu.constants import (
+    SUBMENU_CACHE_TEMPLATE,
+    SUBMENUS_CACHE_KEY,
+    SUBMENUS_CACHE_TIME,
+)
 from app.submenu.schemas import SubmenuResponse
 from app.utils import is_obj_exists_or_404
 
@@ -84,11 +87,11 @@ class CachedSubmenuService(SubmenuService):
     async def create(
         self, menu_id: UUID, submenu: Submenu, session: AsyncSession
     ) -> Submenu | SubmenuResponse:
-        submenu = await super(CachedSubmenuService, self).create(
+        submenu = await super().create(
             menu_id, submenu, session
         )
-        CachedSubmenuService.clear_list_cache()
-        CachedMenuService.clear_all_cache(menu_id)
+        await CachedSubmenuService.clear_list_cache()
+        await CachedMenuService.clear_all_cache(menu_id)
         return submenu
 
     async def update(
@@ -98,31 +101,31 @@ class CachedSubmenuService(SubmenuService):
         updated_submenu: Submenu,
         session: AsyncSession,
     ) -> Submenu | SubmenuResponse:
-        updated_submenu = await super(CachedSubmenuService, self).update(
+        updated_submenu = await super().update(
             menu_id, submenu_id, updated_submenu, session
         )
-        CachedSubmenuService.clear_all_cache(submenu_id)
+        await CachedSubmenuService.clear_all_cache(submenu_id)
         return updated_submenu
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
     ) -> dict:
-        response = await super(CachedSubmenuService, self).delete(
+        response = await super().delete(
             menu_id, submenu_id, session
         )
-        CachedSubmenuService.clear_all_cache(submenu_id)
-        CachedMenuService.clear_all_cache(menu_id)
+        await CachedSubmenuService.clear_all_cache(submenu_id)
+        await CachedMenuService.clear_all_cache(menu_id)
         return response
 
     @staticmethod
-    def clear_retrieve_cache(submenu_id):
-        redis.delete(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
+    async def clear_retrieve_cache(submenu_id: UUID) -> None:
+        await redis.delete(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
 
     @staticmethod
-    def clear_list_cache():
-        redis.delete(SUBMENUS_CACHE_KEY)
+    async def clear_list_cache() -> None:
+        await redis.delete(SUBMENUS_CACHE_KEY)
 
     @classmethod
-    def clear_all_cache(cls, submenu_id):
-        cls.clear_retrieve_cache(submenu_id)
-        cls.clear_list_cache()
+    async def clear_all_cache(cls, submenu_id: UUID) -> None:
+        await cls.clear_retrieve_cache(submenu_id)
+        await cls.clear_list_cache()

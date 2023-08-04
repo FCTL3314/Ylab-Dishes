@@ -3,14 +3,12 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
-from app.dish.constants import (DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY,
-                                DISHES_CACHE_TIME)
+from app.dish.constants import DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY, DISHES_CACHE_TIME
 from app.menu.services import CachedMenuService
 from app.models import Dish
 from app.redis import get_cached_data_or_set_new, redis
 from app.submenu.repository import SubmenuRepository
-from app.submenu.services import (SUBMENU_NOT_FOUND_MESSAGE,
-                                  CachedSubmenuService)
+from app.submenu.services import SUBMENU_NOT_FOUND_MESSAGE, CachedSubmenuService
 from app.utils import is_obj_exists_or_404
 
 DISH_NOT_FOUND_MESSAGE = "dish not found"
@@ -90,7 +88,7 @@ class CachedDishService(DishService):
         self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
     ) -> Dish:
         submenu = await super().create(menu_id, submenu_id, dish, session)
-        CachedDishService.clear_list_cache()
+        await CachedDishService.clear_list_cache()
         return submenu
 
     async def update(
@@ -102,27 +100,27 @@ class CachedDishService(DishService):
         session: AsyncSession,
     ) -> Dish:
         dish = await super().update(menu_id, submenu_id, dish_id, updated_dish, session)
-        CachedDishService.clear_all_cache(dish_id)
+        await CachedDishService.clear_all_cache(dish_id)
         return dish
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
     ) -> dict:
         response = await super().delete(menu_id, submenu_id, dish_id, session)
-        CachedDishService.clear_all_cache(dish_id)
-        CachedSubmenuService.clear_all_cache(submenu_id)
-        CachedMenuService.clear_all_cache(menu_id)
+        await CachedDishService.clear_all_cache(dish_id)
+        await CachedSubmenuService.clear_all_cache(submenu_id)
+        await CachedMenuService.clear_all_cache(menu_id)
         return response
 
     @staticmethod
-    def clear_retrieve_cache(dish_id):
-        redis.delete(DISH_CACHE_TEMPLATE.format(id=dish_id))
+    async def clear_retrieve_cache(dish_id):
+        await redis.delete(DISH_CACHE_TEMPLATE.format(id=dish_id))
 
     @staticmethod
-    def clear_list_cache():
-        redis.delete(DISHES_CACHE_KEY)
+    async def clear_list_cache():
+        await redis.delete(DISHES_CACHE_KEY)
 
     @classmethod
-    def clear_all_cache(cls, dish_id):
-        cls.clear_retrieve_cache(dish_id)
-        cls.clear_list_cache()
+    async def clear_all_cache(cls, dish_id):
+        await cls.clear_retrieve_cache(dish_id)
+        await cls.clear_list_cache()

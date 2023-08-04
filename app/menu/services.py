@@ -3,8 +3,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
-from app.menu.constants import (MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY,
-                                MENUS_CACHE_TIME)
+from app.menu.constants import MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY, MENUS_CACHE_TIME
 from app.menu.schemas import MenuResponse
 from app.models import Menu
 from app.redis import get_cached_data_or_set_new, redis
@@ -69,30 +68,30 @@ class CachedMenuService(MenuService):
         self, menu: Menu, session: AsyncSession
     ) -> MenuResponse | MenuResponse:
         menu = await super().create(menu, session)
-        CachedMenuService.clear_list_cache()
+        await CachedMenuService.clear_list_cache()
         return menu
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
     ) -> MenuResponse | MenuResponse:
         updated_menu = await super().update(menu_id, updated_menu, session)
-        CachedMenuService.clear_all_cache(menu_id)
+        await CachedMenuService.clear_all_cache(menu_id)
         return updated_menu
 
     async def delete(self, menu_id: UUID, session: AsyncSession) -> dict:
         response = await super().delete(menu_id, session)
-        CachedMenuService.clear_all_cache(menu_id)
+        await CachedMenuService.clear_all_cache(menu_id)
         return response
 
     @staticmethod
-    def clear_retrieve_cache(menu_id: UUID) -> None:
-        redis.delete(MENU_CACHE_TEMPLATE.format(id=menu_id))
+    async def clear_retrieve_cache(menu_id: UUID) -> None:
+        await redis.delete(MENU_CACHE_TEMPLATE.format(id=menu_id))
 
     @staticmethod
-    def clear_list_cache() -> None:
-        redis.delete(MENUS_CACHE_KEY)
+    async def clear_list_cache() -> None:
+        await redis.delete(MENUS_CACHE_KEY)
 
     @classmethod
-    def clear_all_cache(cls, manu_id: UUID) -> None:
-        cls.clear_retrieve_cache(manu_id)
-        cls.clear_list_cache()
+    async def clear_all_cache(cls, manu_id: UUID) -> None:
+        await cls.clear_retrieve_cache(manu_id)
+        await cls.clear_list_cache()

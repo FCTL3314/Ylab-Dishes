@@ -3,4 +3,4 @@
 alembic revision --autogenerate -m "Database creation"
 alembic upgrade head
 
-pytest . -W ignore::Warning
+pytest . -W ignore::Warning -s
