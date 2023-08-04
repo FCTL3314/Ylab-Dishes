@@ -20,7 +20,8 @@ class SubmenuRepository(AbstractCRUDRepository):
     ) -> Submenu:
         stmt = SubmenuRepository.get_base_query(menu_id).where(Submenu.id == submenu_id)
         result = await session.execute(stmt)
-        return result.first()[0] if orm_object else result.first()
+        if first := result.first():
+            return first[0] if orm_object else first
 
     async def get(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession) -> Row:
         stmt = self.get_base_query(menu_id).where(

@@ -11,6 +11,11 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:alpine
+    volumes:
+      - ../../data/redis/:/data/
+
   web:
     build:
       context: ../../
@@ -22,3 +27,4 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
