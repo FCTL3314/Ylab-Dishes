@@ -15,11 +15,12 @@ class MenuRepository(AbstractCRUDRepository):
     @staticmethod
     async def get_by_id(
         menu_id: UUID, session: AsyncSession, orm_object: bool = False
-    ) -> Row | MenuBase:
+    ) -> Row | MenuBase | None:
         stmt = select(Menu).where(Menu.id == menu_id)
         result = await session.execute(stmt)
         if first := result.first():
             return first[0] if orm_object else first
+        return None
 
     async def get(self, menu_id: UUID, session: AsyncSession) -> Row:
         stmt = self.base_query.where(Menu.id == menu_id)

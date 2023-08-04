@@ -3,9 +3,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
-from app.dish.constants import (DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY,
-                                DISHES_CACHE_TIME)
-from app.menu.services import MenuService
+from app.dish.constants import DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY, DISHES_CACHE_TIME
+from app.menu.services import CachedMenuService
 from app.models import Dish
 from app.redis import get_cached_data_or_set_new, redis
 from app.submenu.repository import SubmenuRepository
@@ -71,7 +70,7 @@ class DishService(AbstractCRUDService):
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
         DishService.clear_all_cache(dish_id)
         SubmenuService.clear_all_cache(submenu_id)
-        MenuService.clear_all_cache(menu_id)
+        CachedMenuService.clear_all_cache(menu_id)
         return await self.repository.delete(dish, session)
 
     @staticmethod

@@ -4,11 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
 from app.menu.repository import MenuRepository
-from app.menu.services import MENU_NOT_FOUND_MESSAGE, MenuService
+from app.menu.services import MENU_NOT_FOUND_MESSAGE, CachedMenuService
 from app.models import Submenu
 from app.redis import get_cached_data_or_set_new, redis
-from app.submenu.constants import (SUBMENU_CACHE_TEMPLATE, SUBMENUS_CACHE_KEY,
-                                   SUBMENUS_CACHE_TIME)
+from app.submenu.constants import (
+    SUBMENU_CACHE_TEMPLATE,
+    SUBMENUS_CACHE_KEY,
+    SUBMENUS_CACHE_TIME,
+)
 from app.submenu.schemas import SubmenuResponse
 from app.utils import is_obj_exists_or_404
 
@@ -43,7 +46,7 @@ class SubmenuService(AbstractCRUDService):
         menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         SubmenuService.clear_list_cache()
-        MenuService.clear_all_cache(menu_id)
+        CachedMenuService.clear_all_cache(menu_id)
         return await self.repository.create(menu, submenu, session)
 
     async def update(
@@ -68,7 +71,7 @@ class SubmenuService(AbstractCRUDService):
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
         SubmenuService.clear_all_cache(submenu_id)
-        MenuService.clear_all_cache(menu_id)
+        CachedMenuService.clear_all_cache(menu_id)
         return await self.repository.delete(submenu, session)
 
     @staticmethod

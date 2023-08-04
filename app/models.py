@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship
@@ -10,7 +9,7 @@ from app.submenu.schemas import SubmenuBase
 
 
 class Menu(MenuBase, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
 
     submenus: list["Submenu"] = Relationship(
         sa_relationship_kwargs={
@@ -22,8 +21,8 @@ class Menu(MenuBase, table=True):
 
 
 class Submenu(SubmenuBase, table=True):
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    menu_id: Optional[UUID] = Field(default=None, foreign_key="menu.id")
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    menu_id: UUID | None = Field(default=None, foreign_key="menu.id")
 
     menu: "Menu" = Relationship(back_populates="submenus")
     dishes: list["Dish"] = Relationship(
@@ -43,8 +42,8 @@ class Dish(DishBase, table=True):
             kwargs["price"] = template.format(float(kwargs["price"]))
         super().__init__(**kwargs)
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    submenu_id: Optional[UUID] = Field(default=None, foreign_key="submenu.id")
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    submenu_id: UUID | None = Field(default=None, foreign_key="submenu.id")
 
     submenu: Submenu = Relationship(
         sa_relationship_kwargs={"lazy": "selectin"},

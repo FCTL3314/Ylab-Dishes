@@ -17,11 +17,12 @@ class SubmenuRepository(AbstractCRUDRepository):
     @staticmethod
     async def get_by_id(
         menu_id: UUID, submenu_id: UUID, session: AsyncSession, orm_object: bool = False
-    ) -> Submenu:
+    ) -> Row | Submenu | None:
         stmt = SubmenuRepository.get_base_query(menu_id).where(Submenu.id == submenu_id)
         result = await session.execute(stmt)
         if first := result.first():
             return first[0] if orm_object else first
+        return None
 
     async def get(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession) -> Row:
         stmt = self.get_base_query(menu_id).where(

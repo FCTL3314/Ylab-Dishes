@@ -4,7 +4,7 @@ from app.db import get_async_session
 from app.dish.repository import DishRepository
 from app.dish.services import DishService
 from app.menu.repository import MenuWithCountingRepository
-from app.menu.services import MenuService
+from app.menu.services import CachedMenuService, MenuService
 from app.submenu.repository import SubmenuWithCountingRepository
 from app.submenu.services import SubmenuService
 
@@ -16,6 +16,13 @@ def menu_service():
 
 
 ActiveMenuService = Depends(menu_service)
+
+
+def cached_menu_service():
+    return CachedMenuService(MenuWithCountingRepository())
+
+
+ActiveCachedMenuService = Depends(cached_menu_service)
 
 
 def submenu_service():

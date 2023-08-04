@@ -33,7 +33,7 @@ class DishRepository(AbstractCRUDRepository):
         dish_id: UUID,
         session: AsyncSession,
         orm_object: bool = False,
-    ) -> Dish:
+    ) -> Row | Dish | None:
         stmt = (
             select(Dish)
             .join(Submenu, Dish.submenu_id == Submenu.id)
@@ -46,6 +46,7 @@ class DishRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         if first := result.first():
             return first[0] if orm_object else first
+        return None
 
     async def get(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
