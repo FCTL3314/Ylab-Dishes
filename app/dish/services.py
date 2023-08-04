@@ -3,7 +3,9 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
+from app.dish.constants import DISH_CACHE_TEMPLATE, DISHES_CACHE_TIME, DISHES_CACHE_KEY
 from app.models import Dish
+from app.redis import get_cached_data_or_set_new, redis
 from app.submenu.repository import SubmenuRepository
 from app.submenu.services import SUBMENU_NOT_FOUND_MESSAGE
 from app.utils import is_obj_exists_or_404
@@ -15,14 +17,23 @@ class DishService(AbstractCRUDService):
     async def retrieve(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
     ) -> Dish:
-        dish = await self.repository.get(menu_id, submenu_id, dish_id, session)
+        dish = await get_cached_data_or_set_new(
+            DISH_CACHE_TEMPLATE.format(id=dish_id),
+            lambda: self.repository.get(menu_id, submenu_id, dish_id, session),
+            DISHES_CACHE_TIME,
+        )
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
         return dish
 
     async def list(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
     ) -> list[Dish]:
-        return await self.repository.all(menu_id, submenu_id, session)
+        dishes = await get_cached_data_or_set_new(
+            DISHES_CACHE_KEY,
+            lambda: self.repository.all(menu_id, submenu_id, session),
+            DISHES_CACHE_TIME,
+        )
+        return dishes
 
     async def create(
         self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
@@ -53,4 +64,7 @@ class DishService(AbstractCRUDService):
         dish = await self.repository.get_by_id(
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
+        is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
+        redis.delete(DISH_CACHE_TEMPLATE.format(id=dish_id))
+        redis.delete(DISHES_CACHE_KEY)
         return await self.repository.delete(dish, session)

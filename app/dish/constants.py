@@ -1,0 +1,3 @@
+DISHES_CACHE_KEY = "dishes-list"
+DISH_CACHE_TEMPLATE = "dish_{id:}"
+DISHES_CACHE_TIME = 60 * 60
