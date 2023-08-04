@@ -21,19 +21,19 @@ SUBMENU_NOT_FOUND_MESSAGE = 'submenu not found'
 class SubmenuService(AbstractCRUDService):
     async def retrieve(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
-    ) -> Submenu | SubmenuResponse:
+    ) -> SubmenuResponse:
         submenu = await self.repository.get(menu_id, submenu_id, session)
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
         return submenu
 
     async def list(
         self, menu_id: UUID, session: AsyncSession
-    ) -> list[Submenu] | list[SubmenuResponse]:
+    ) -> list[SubmenuResponse]:
         return await self.repository.all(menu_id, session)
 
     async def create(
         self, menu_id: UUID, submenu: Submenu, session: AsyncSession
-    ) -> Submenu | SubmenuResponse:
+    ) -> SubmenuResponse:
         menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.create(menu, submenu, session)
@@ -44,7 +44,7 @@ class SubmenuService(AbstractCRUDService):
         submenu_id: UUID,
         updated_submenu: Submenu,
         session: AsyncSession,
-    ) -> Submenu | SubmenuResponse:
+    ) -> SubmenuResponse:
         submenu = await self.repository.get_by_id(
             menu_id, submenu_id, session, orm_object=True
         )
@@ -64,7 +64,7 @@ class SubmenuService(AbstractCRUDService):
 class CachedSubmenuService(SubmenuService):
     async def retrieve(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
-    ) -> Submenu | SubmenuResponse:
+    ) -> SubmenuResponse:
         submenu = await get_cached_data_or_set_new(
             key=SUBMENU_CACHE_TEMPLATE.format(id=submenu_id),
             callback=lambda: super(CachedSubmenuService, self).retrieve(
@@ -76,7 +76,7 @@ class CachedSubmenuService(SubmenuService):
 
     async def list(
         self, menu_id: UUID, session: AsyncSession
-    ) -> list[Submenu] | list[SubmenuResponse]:
+    ) -> list[SubmenuResponse]:
         submenus = await get_cached_data_or_set_new(
             key=SUBMENUS_CACHE_KEY,
             callback=lambda: super(CachedSubmenuService, self).list(menu_id, session),
@@ -86,13 +86,13 @@ class CachedSubmenuService(SubmenuService):
 
     async def create(
         self, menu_id: UUID, submenu: Submenu, session: AsyncSession
-    ) -> Submenu | SubmenuResponse:
-        submenu = await super().create(
+    ) -> SubmenuResponse:
+        _submenu = await super().create(
             menu_id, submenu, session
-        )  # type: ignore
+        )
         await CachedSubmenuService.clear_list_cache()
         await CachedMenuService.clear_all_cache(menu_id)
-        return submenu
+        return _submenu
 
     async def update(
         self,
@@ -100,12 +100,12 @@ class CachedSubmenuService(SubmenuService):
         submenu_id: UUID,
         updated_submenu: Submenu,
         session: AsyncSession,
-    ) -> Submenu | SubmenuResponse:
-        updated_submenu = await super().update(
+    ) -> SubmenuResponse:
+        _updated_submenu = await super().update(
             menu_id, submenu_id, updated_submenu, session
-        )  # type: ignore
+        )
         await CachedSubmenuService.clear_all_cache(submenu_id)
-        return updated_submenu
+        return _updated_submenu
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession

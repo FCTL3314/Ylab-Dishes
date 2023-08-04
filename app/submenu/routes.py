@@ -20,7 +20,7 @@ async def submenu_retrieve(
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
     response = await submenu_service.retrieve(menu_id, submenu_id, session)
-    return response  # type: ignore
+    return response
 
 
 @router.get('/', response_model=list[SubmenuResponse])
@@ -30,7 +30,7 @@ async def submenu_list(
     session: AsyncSession = ActiveSession,
 ) -> list[SubmenuResponse]:
     response = await submenu_service.list(menu_id, session)
-    return response  # type: ignore
+    return response
 
 
 @router.post('/', response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
@@ -41,7 +41,7 @@ async def submenu_create(
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
     response = await submenu_service.create(menu_id, submenu, session)
-    return response  # type: ignore
+    return response
 
 
 @router.patch('/{submenu_id}/', response_model=SubmenuResponse)
@@ -55,7 +55,7 @@ async def submenu_patch(
     response = await submenu_service.update(
         menu_id, submenu_id, updated_submenu, session
     )
-    return response  # type: ignore
+    return response
 
 
 @router.delete('/{submenu_id}/')
