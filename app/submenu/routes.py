@@ -18,7 +18,7 @@ async def submenu_retrieve(
     submenu_id: UUID,
     submenu_service: SubmenuService = ActiveSubmenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> SubmenuResponse:
     response = await submenu_service.retrieve(menu_id, submenu_id, session)
     return response
 
@@ -28,7 +28,7 @@ async def submenu_list(
     menu_id: UUID,
     submenu_service: SubmenuService = ActiveSubmenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> list[SubmenuResponse]:
     response = await submenu_service.list(menu_id, session)
     return response
 
@@ -39,7 +39,7 @@ async def submenu_create(
     submenu: Submenu,
     submenu_service: SubmenuService = ActiveSubmenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> SubmenuResponse:
     response = await submenu_service.create(menu_id, submenu, session)
     return response
 
@@ -51,7 +51,7 @@ async def submenu_patch(
     updated_submenu: Submenu,
     submenu_service: SubmenuService = ActiveSubmenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> SubmenuResponse:
     response = await submenu_service.update(
         menu_id, submenu_id, updated_submenu, session
     )
@@ -64,6 +64,6 @@ async def submenu_delete(
     submenu_id: UUID,
     submenu_service: SubmenuService = ActiveSubmenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> dict:
     response = await submenu_service.delete(menu_id, submenu_id, session)
     return response

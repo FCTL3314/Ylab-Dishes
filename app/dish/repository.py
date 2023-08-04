@@ -1,13 +1,14 @@
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import AbstractRepository
+from app.common.repository import AbstractCRUDRepository
 from app.models import Dish, Submenu
 
 
-class DishRepository(AbstractRepository):
+class DishRepository(AbstractCRUDRepository):
     @staticmethod
     def get_base_query(menu_id: UUID, submenu_id: UUID):
         return (
@@ -32,7 +33,7 @@ class DishRepository(AbstractRepository):
         dish_id: UUID,
         session: AsyncSession,
         orm_object: bool = False,
-    ):
+    ) -> Dish:
         stmt = (
             select(Dish)
             .join(Submenu, Dish.submenu_id == Submenu.id)
@@ -47,23 +48,27 @@ class DishRepository(AbstractRepository):
 
     async def get(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
-    ):
+    ) -> Row:
         stmt = self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id)
         result = await session.execute(stmt)
         return result.first()
 
-    async def all(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession):
+    async def all(
+        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+    ) -> list[Row]:
         result = await session.execute(self.get_base_query(menu_id, submenu_id))
         return result.all()
 
-    async def create(self, submenu: Submenu, dish: Dish, session: AsyncSession):
+    @staticmethod
+    async def create(submenu: Submenu, dish: Dish, session: AsyncSession) -> Dish:
         submenu.dishes.append(dish)
         session.add(dish)
         await session.commit()
         await session.refresh(dish)
         return dish
 
-    async def update(self, dish: Dish, updated_dish: Dish, session: AsyncSession):
+    @staticmethod
+    async def update(dish: Dish, updated_dish: Dish, session: AsyncSession) -> Dish:
         updated_dish_dict = updated_dish.dict(exclude_unset=True)
 
         for key, val in updated_dish_dict.items():
@@ -73,7 +78,8 @@ class DishRepository(AbstractRepository):
         await session.refresh(dish)
         return dish
 
-    async def delete(self, dish: Dish, session: AsyncSession):
+    @staticmethod
+    async def delete(dish: Dish, session: AsyncSession) -> dict:
         await session.delete(dish)
         await session.commit()
         return {"status": True, "message": "The dish has been deleted"}

@@ -9,6 +9,24 @@ from app.submenu.repository import SubmenuWithCountingRepository
 from app.submenu.services import SubmenuService
 
 ActiveSession = Depends(get_async_session)
-ActiveMenuService = Depends(lambda: MenuService(MenuWithCountingRepository))
-ActiveSubmenuService = Depends(lambda: SubmenuService(SubmenuWithCountingRepository))
-ActiveDishService = Depends(lambda: DishService(DishRepository))
+
+
+def menu_service():
+    return MenuService(MenuWithCountingRepository())
+
+
+ActiveMenuService = Depends(menu_service)
+
+
+def submenu_service():
+    return SubmenuService(SubmenuWithCountingRepository())
+
+
+ActiveSubmenuService = Depends(submenu_service)
+
+
+def dish_service():
+    return DishService(DishRepository())
+
+
+ActiveDishService = Depends(dish_service)

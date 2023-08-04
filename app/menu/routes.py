@@ -17,7 +17,7 @@ async def menu_retrieve(
     menu_id: UUID,
     menu_service: MenuService = ActiveMenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> MenuResponse:
     response = await menu_service.retrieve(menu_id, session)
     return response
 
@@ -25,7 +25,7 @@ async def menu_retrieve(
 @router.get("/", response_model=list[MenuResponse])
 async def menu_list(
     menu_service: MenuService = ActiveMenuService, session: AsyncSession = ActiveSession
-):
+) -> list[MenuResponse]:
     response = await menu_service.list(session)
     return response
 
@@ -35,7 +35,7 @@ async def menu_create(
     menu: Menu,
     menu_service: MenuService = ActiveMenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> MenuResponse:
     response = await menu_service.create(menu, session)
     return response
 
@@ -46,7 +46,7 @@ async def menu_patch(
     updated_menu: Menu,
     menu_service: MenuService = ActiveMenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> MenuResponse:
     response = await menu_service.update(menu_id, updated_menu, session)
     return response
 
@@ -56,6 +56,6 @@ async def menu_delete(
     menu_id: UUID,
     menu_service: MenuService = ActiveMenuService,
     session: AsyncSession = ActiveSession,
-):
+) -> dict:
     response = await menu_service.delete(menu_id, session)
     return response

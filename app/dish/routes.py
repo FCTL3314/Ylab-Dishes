@@ -18,18 +18,18 @@ async def dish_retrieve(
     dish_id: UUID,
     dish_service: DishService = ActiveDishService,
     session: AsyncSession = ActiveSession,
-):
+) -> Dish:
     response = await dish_service.retrieve(menu_id, submenu_id, dish_id, session)
     return response
 
 
-@router.get("/")
+@router.get("/", response_model=list[Dish])
 async def dish_list(
     menu_id: UUID,
     submenu_id: UUID,
     dish_service: DishService = ActiveDishService,
     session: AsyncSession = ActiveSession,
-):
+) -> list[Dish]:
     response = await dish_service.list(menu_id, submenu_id, session)
     return response
 
@@ -41,7 +41,7 @@ async def dish_create(
     dish: Dish,
     dish_service: DishService = ActiveDishService,
     session: AsyncSession = ActiveSession,
-):
+) -> Dish:
     response = await dish_service.create(menu_id, submenu_id, dish, session)
     return response
 
@@ -54,7 +54,7 @@ async def dish_patch(
     updated_dish: Dish,
     dish_service: DishService = ActiveDishService,
     session: AsyncSession = ActiveSession,
-):
+) -> Dish:
     response = await dish_service.update(
         menu_id, submenu_id, dish_id, updated_dish, session
     )
@@ -68,6 +68,6 @@ async def dish_delete(
     dish_id: UUID,
     dish_service: DishService = ActiveDishService,
     session: AsyncSession = ActiveSession,
-):
+) -> dict:
     response = await dish_service.delete(menu_id, submenu_id, dish_id, session)
     return response

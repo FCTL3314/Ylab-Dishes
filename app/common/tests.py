@@ -1,5 +1,8 @@
+from typing import Type
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlalchemy.sql import Select
+from sqlmodel import SQLModel, select
 
 
 def is_response_match_object_fields(
@@ -13,12 +16,12 @@ def is_response_match_object_fields(
     return True
 
 
-async def get_model_objects_count(model, session: AsyncSession):
+async def get_model_objects_count(model: Type[SQLModel], session: AsyncSession):
     result = await session.execute(select(model))
     return len(result.all())
 
 
-async def delete_first_object(query, session: AsyncSession):
+async def delete_first_object(query: Select, session: AsyncSession):
     objs = await session.execute(query)
     obj = objs.first()[0]
     await session.delete(obj)
