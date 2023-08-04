@@ -25,7 +25,7 @@ async def get_related_submenu(dish: Dish, session: AsyncSession):
 
 async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSession):
     response = await client.get(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'  # type: ignore
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -38,7 +38,7 @@ async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSess
 
 async def test_dish_list(dish: Dish, client: AsyncClient, session: AsyncSession):
     response = await client.get(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + 'dishes/'  # type: ignore
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + 'dishes/'
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -54,7 +54,7 @@ async def test_dish_create(
         'price': '19.99',
     }
     response = await client.post(
-        get_base_url(submenu.menu_id, submenu.id) + 'dishes/',  # type: ignore
+        get_base_url(submenu.menu_id, submenu.id) + 'dishes/',
         json=data,
     )
 
@@ -76,7 +76,7 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
         'price': '12.33',
     }
     response = await client.patch(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/',  # type: ignore
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/',
         json=data,
     )
 
@@ -88,7 +88,7 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
 
 async def test_dish_delete(dish: Dish, client: AsyncClient, session: AsyncSession):
     response = await client.delete(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'  # type: ignore
+        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'
     )
 
     assert response.status_code == HTTPStatus.OK

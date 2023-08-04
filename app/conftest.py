@@ -12,6 +12,7 @@ from app.config import TestConfig
 from app.db import get_async_session
 from app.main import app
 from app.models import Menu, Submenu
+from app.redis import redis
 
 TEST_SQLALCHEMY_URI = (
     f'postgresql+asyncpg://'
@@ -93,3 +94,8 @@ async def dish(submenu: Submenu, session: AsyncSession):
     dish = await create_test_object('app.models.Dish', session, submenu_id=submenu.id)
     yield dish
     await remove_test_object(dish, session)
+
+
+@pytest.fixture(autouse=True)
+async def clear_cache():
+    await redis.flushall()
