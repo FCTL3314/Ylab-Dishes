@@ -1,4 +1,3 @@
-import pickle
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,6 +34,7 @@ class MenuService(AbstractCRUDService):
         return menus
 
     async def create(self, menu: Menu, session: AsyncSession) -> Menu | MenuResponse:
+        MenuService.clear_list_cache()
         return await self.repository.create(menu, session)
 
     async def update(
@@ -42,11 +42,24 @@ class MenuService(AbstractCRUDService):
     ) -> Menu | MenuResponse:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
+        MenuService.clear_all_cache(menu_id)
         return await self.repository.update(menu, updated_menu, session)
 
     async def delete(self, menu_id: UUID, session: AsyncSession) -> dict:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
-        redis.delete(MENU_CACHE_TEMPLATE.format(id=menu_id))
-        redis.delete(MENUS_CACHE_KEY)
+        MenuService.clear_all_cache(menu_id)
         return await self.repository.delete(menu, session)
+
+    @staticmethod
+    def clear_retrieve_cache(menu_id):
+        redis.delete(MENU_CACHE_TEMPLATE.format(id=menu_id))
+
+    @staticmethod
+    def clear_list_cache():
+        redis.delete(MENUS_CACHE_KEY)
+
+    @classmethod
+    def clear_all_cache(cls, manu_id):
+        cls.clear_retrieve_cache(manu_id)
+        cls.clear_list_cache()

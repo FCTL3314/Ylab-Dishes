@@ -4,10 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
 from app.menu.repository import MenuRepository
-from app.menu.services import MENU_NOT_FOUND_MESSAGE
+from app.menu.services import MENU_NOT_FOUND_MESSAGE, MenuService
 from app.models import Submenu
 from app.redis import get_cached_data_or_set_new, redis
-from app.submenu.constants import SUBMENU_CACHE_TEMPLATE, SUBMENUS_CACHE_TIME, SUBMENUS_CACHE_KEY
+from app.submenu.constants import (SUBMENU_CACHE_TEMPLATE, SUBMENUS_CACHE_KEY,
+                                   SUBMENUS_CACHE_TIME)
 from app.submenu.schemas import SubmenuResponse
 from app.utils import is_obj_exists_or_404
 
@@ -41,6 +42,8 @@ class SubmenuService(AbstractCRUDService):
     ) -> Submenu | SubmenuResponse:
         menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
+        SubmenuService.clear_list_cache()
+        MenuService.clear_all_cache(menu_id)
         return await self.repository.create(menu, submenu, session)
 
     async def update(
@@ -54,6 +57,7 @@ class SubmenuService(AbstractCRUDService):
             menu_id, submenu_id, session, orm_object=True
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
+        SubmenuService.clear_all_cache(submenu_id)
         return await self.repository.update(submenu, updated_submenu, session)
 
     async def delete(
@@ -63,6 +67,19 @@ class SubmenuService(AbstractCRUDService):
             menu_id, submenu_id, session, orm_object=True
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
-        redis.delete(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
-        redis.delete(SUBMENUS_CACHE_KEY)
+        SubmenuService.clear_all_cache(submenu_id)
+        MenuService.clear_all_cache(menu_id)
         return await self.repository.delete(submenu, session)
+
+    @staticmethod
+    def clear_retrieve_cache(submenu_id):
+        redis.delete(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
+
+    @staticmethod
+    def clear_list_cache():
+        redis.delete(SUBMENUS_CACHE_KEY)
+
+    @classmethod
+    def clear_all_cache(cls, submenu_id):
+        cls.clear_retrieve_cache(submenu_id)
+        cls.clear_list_cache()
