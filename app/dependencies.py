@@ -6,7 +6,7 @@ from app.dish.services import DishService
 from app.menu.repository import MenuWithCountingRepository
 from app.menu.services import CachedMenuService, MenuService
 from app.submenu.repository import SubmenuWithCountingRepository
-from app.submenu.services import SubmenuService
+from app.submenu.services import SubmenuService, CachedSubmenuService
 
 ActiveSession = Depends(get_async_session)
 
@@ -30,6 +30,13 @@ def submenu_service():
 
 
 ActiveSubmenuService = Depends(submenu_service)
+
+
+def cached_submenu_service():
+    return CachedSubmenuService(SubmenuWithCountingRepository())
+
+
+ActiveCachedSubmenuService = Depends(cached_submenu_service)
 
 
 def dish_service():

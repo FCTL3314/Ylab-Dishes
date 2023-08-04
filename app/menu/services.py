@@ -59,8 +59,9 @@ class CachedMenuService(MenuService):
         return menus
 
     async def create(self, menu: Menu, session: AsyncSession) -> MenuResponse | MenuResponse:
+        menu = await super().create(menu, session)
         CachedMenuService.clear_list_cache()
-        return await super().create(menu, session)
+        return menu
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
