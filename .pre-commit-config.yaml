@@ -47,4 +47,3 @@ repos:
     hooks:
     -   id: mypy
         exclude: 'migrations'
-        args: ["--disable_error_code=misc,attr-defined"]
