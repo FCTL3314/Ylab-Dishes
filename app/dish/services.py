@@ -3,12 +3,14 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
-from app.dish.constants import DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY, DISHES_CACHE_TIME
+from app.dish.constants import (DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY,
+                                DISHES_CACHE_TIME)
 from app.menu.services import CachedMenuService
 from app.models import Dish
 from app.redis import get_cached_data_or_set_new, redis
 from app.submenu.repository import SubmenuRepository
-from app.submenu.services import SUBMENU_NOT_FOUND_MESSAGE, SubmenuService
+from app.submenu.services import (SUBMENU_NOT_FOUND_MESSAGE,
+                                  CachedSubmenuService)
 from app.utils import is_obj_exists_or_404
 
 DISH_NOT_FOUND_MESSAGE = "dish not found"
@@ -18,23 +20,14 @@ class DishService(AbstractCRUDService):
     async def retrieve(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
     ) -> Dish:
-        dish = await get_cached_data_or_set_new(
-            DISH_CACHE_TEMPLATE.format(id=dish_id),
-            lambda: self.repository.get(menu_id, submenu_id, dish_id, session),
-            DISHES_CACHE_TIME,
-        )
+        dish = await self.repository.get(menu_id, submenu_id, dish_id, session)
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
         return dish
 
     async def list(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
     ) -> list[Dish]:
-        dishes = await get_cached_data_or_set_new(
-            DISHES_CACHE_KEY,
-            lambda: self.repository.all(menu_id, submenu_id, session),
-            DISHES_CACHE_TIME,
-        )
-        return dishes
+        return await self.repository.all(menu_id, submenu_id, session)
 
     async def create(
         self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
@@ -43,7 +36,6 @@ class DishService(AbstractCRUDService):
             menu_id, submenu_id, session, orm_object=True
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
-        DishService.clear_list_cache()
         return await self.repository.create(submenu, dish, session)
 
     async def update(
@@ -58,7 +50,6 @@ class DishService(AbstractCRUDService):
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
-        DishService.clear_all_cache(dish_id)
         return await self.repository.update(dish, updated_dish, session)
 
     async def delete(
@@ -68,10 +59,60 @@ class DishService(AbstractCRUDService):
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
-        DishService.clear_all_cache(dish_id)
-        SubmenuService.clear_all_cache(submenu_id)
-        CachedMenuService.clear_all_cache(menu_id)
         return await self.repository.delete(dish, session)
+
+
+class CachedDishService(DishService):
+    async def retrieve(
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+    ) -> Dish:
+        dish = await get_cached_data_or_set_new(
+            DISH_CACHE_TEMPLATE.format(id=dish_id),
+            lambda: super(CachedDishService, self).retrieve(
+                menu_id, submenu_id, dish_id, session
+            ),
+            DISHES_CACHE_TIME,
+        )
+        is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
+        return dish
+
+    async def list(
+        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+    ) -> list[Dish]:
+        dishes = await get_cached_data_or_set_new(
+            DISHES_CACHE_KEY,
+            lambda: super(CachedDishService, self).list(menu_id, submenu_id, session),
+            DISHES_CACHE_TIME,
+        )
+        return dishes
+
+    async def create(
+        self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
+    ) -> Dish:
+        submenu = await super().create(menu_id, submenu_id, dish, session)
+        CachedDishService.clear_list_cache()
+        return submenu
+
+    async def update(
+        self,
+        menu_id: UUID,
+        submenu_id: UUID,
+        dish_id: UUID,
+        updated_dish: Dish,
+        session: AsyncSession,
+    ) -> Dish:
+        dish = await super().update(menu_id, submenu_id, dish_id, updated_dish, session)
+        CachedDishService.clear_all_cache(dish_id)
+        return dish
+
+    async def delete(
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+    ) -> dict:
+        response = await super().delete(menu_id, submenu_id, dish_id, session)
+        CachedDishService.clear_all_cache(dish_id)
+        CachedSubmenuService.clear_all_cache(submenu_id)
+        CachedMenuService.clear_all_cache(menu_id)
+        return response
 
     @staticmethod
     def clear_retrieve_cache(dish_id):

@@ -7,11 +7,8 @@ from app.menu.repository import MenuRepository
 from app.menu.services import MENU_NOT_FOUND_MESSAGE, CachedMenuService
 from app.models import Submenu
 from app.redis import get_cached_data_or_set_new, redis
-from app.submenu.constants import (
-    SUBMENU_CACHE_TEMPLATE,
-    SUBMENUS_CACHE_KEY,
-    SUBMENUS_CACHE_TIME,
-)
+from app.submenu.constants import (SUBMENU_CACHE_TEMPLATE, SUBMENUS_CACHE_KEY,
+                                   SUBMENUS_CACHE_TIME)
 from app.submenu.schemas import SubmenuResponse
 from app.utils import is_obj_exists_or_404
 
@@ -62,13 +59,14 @@ class SubmenuService(AbstractCRUDService):
 
 
 class CachedSubmenuService(SubmenuService):
-
     async def retrieve(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
     ) -> Submenu | SubmenuResponse:
         submenu = await get_cached_data_or_set_new(
             key=SUBMENU_CACHE_TEMPLATE.format(id=submenu_id),
-            callback=lambda: super(CachedSubmenuService, self).retrieve(menu_id, submenu_id, session),
+            callback=lambda: super(CachedSubmenuService, self).retrieve(
+                menu_id, submenu_id, session
+            ),
             expiration=SUBMENUS_CACHE_TIME,
         )
         return submenu
@@ -86,7 +84,9 @@ class CachedSubmenuService(SubmenuService):
     async def create(
         self, menu_id: UUID, submenu: Submenu, session: AsyncSession
     ) -> Submenu | SubmenuResponse:
-        submenu = await super(CachedSubmenuService, self).create(menu_id, submenu, session)
+        submenu = await super(CachedSubmenuService, self).create(
+            menu_id, submenu, session
+        )
         CachedSubmenuService.clear_list_cache()
         CachedMenuService.clear_all_cache(menu_id)
         return submenu
@@ -98,14 +98,18 @@ class CachedSubmenuService(SubmenuService):
         updated_submenu: Submenu,
         session: AsyncSession,
     ) -> Submenu | SubmenuResponse:
-        updated_submenu = await super(CachedSubmenuService, self).update(menu_id, submenu_id, updated_submenu, session)
+        updated_submenu = await super(CachedSubmenuService, self).update(
+            menu_id, submenu_id, updated_submenu, session
+        )
         CachedSubmenuService.clear_all_cache(submenu_id)
         return updated_submenu
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
     ) -> dict:
-        response = await super(CachedSubmenuService, self).delete(menu_id, submenu_id, session)
+        response = await super(CachedSubmenuService, self).delete(
+            menu_id, submenu_id, session
+        )
         CachedSubmenuService.clear_all_cache(submenu_id)
         CachedMenuService.clear_all_cache(menu_id)
         return response

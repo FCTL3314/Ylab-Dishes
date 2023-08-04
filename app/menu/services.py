@@ -3,7 +3,8 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractCRUDService
-from app.menu.constants import MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY, MENUS_CACHE_TIME
+from app.menu.constants import (MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY,
+                                MENUS_CACHE_TIME)
 from app.menu.schemas import MenuResponse
 from app.models import Menu
 from app.redis import get_cached_data_or_set_new, redis
@@ -20,10 +21,14 @@ class MenuService(AbstractCRUDService):
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
-    async def list(self, session: AsyncSession) -> list[MenuResponse] | list[MenuResponse]:
+    async def list(
+        self, session: AsyncSession
+    ) -> list[MenuResponse] | list[MenuResponse]:
         return await self.repository.all(session)
 
-    async def create(self, menu: Menu, session: AsyncSession) -> MenuResponse | MenuResponse:
+    async def create(
+        self, menu: Menu, session: AsyncSession
+    ) -> MenuResponse | MenuResponse:
         return await self.repository.create(menu, session)
 
     async def update(
@@ -50,7 +55,9 @@ class CachedMenuService(MenuService):
         )
         return menu
 
-    async def list(self, session: AsyncSession) -> list[MenuResponse] | list[MenuResponse]:
+    async def list(
+        self, session: AsyncSession
+    ) -> list[MenuResponse] | list[MenuResponse]:
         menus = await get_cached_data_or_set_new(
             key=MENUS_CACHE_KEY,
             callback=lambda: super(CachedMenuService, self).list(session),
@@ -58,7 +65,9 @@ class CachedMenuService(MenuService):
         )
         return menus
 
-    async def create(self, menu: Menu, session: AsyncSession) -> MenuResponse | MenuResponse:
+    async def create(
+        self, menu: Menu, session: AsyncSession
+    ) -> MenuResponse | MenuResponse:
         menu = await super().create(menu, session)
         CachedMenuService.clear_list_cache()
         return menu

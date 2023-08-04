@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import ActiveDishService, ActiveSession
-from app.dish.services import DishService
+from app.dependencies import ActiveCachedDishService, ActiveSession
+from app.dish.services import CachedDishService
 from app.models import Dish
 
 router = APIRouter()
@@ -16,7 +16,7 @@ async def dish_retrieve(
     menu_id: UUID,
     submenu_id: UUID,
     dish_id: UUID,
-    dish_service: DishService = ActiveDishService,
+    dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
     response = await dish_service.retrieve(menu_id, submenu_id, dish_id, session)
@@ -27,7 +27,7 @@ async def dish_retrieve(
 async def dish_list(
     menu_id: UUID,
     submenu_id: UUID,
-    dish_service: DishService = ActiveDishService,
+    dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> list[Dish]:
     response = await dish_service.list(menu_id, submenu_id, session)
@@ -39,7 +39,7 @@ async def dish_create(
     menu_id: UUID,
     submenu_id: UUID,
     dish: Dish,
-    dish_service: DishService = ActiveDishService,
+    dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
     response = await dish_service.create(menu_id, submenu_id, dish, session)
@@ -52,7 +52,7 @@ async def dish_patch(
     submenu_id: UUID,
     dish_id: UUID,
     updated_dish: Dish,
-    dish_service: DishService = ActiveDishService,
+    dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
     response = await dish_service.update(
@@ -66,7 +66,7 @@ async def dish_delete(
     menu_id: UUID,
     submenu_id: UUID,
     dish_id: UUID,
-    dish_service: DishService = ActiveDishService,
+    dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> dict:
     response = await dish_service.delete(menu_id, submenu_id, dish_id, session)

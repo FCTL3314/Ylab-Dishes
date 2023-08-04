@@ -2,11 +2,11 @@ from fastapi import Depends
 
 from app.db import get_async_session
 from app.dish.repository import DishRepository
-from app.dish.services import DishService
+from app.dish.services import CachedDishService, DishService
 from app.menu.repository import MenuWithCountingRepository
 from app.menu.services import CachedMenuService, MenuService
 from app.submenu.repository import SubmenuWithCountingRepository
-from app.submenu.services import SubmenuService, CachedSubmenuService
+from app.submenu.services import CachedSubmenuService, SubmenuService
 
 ActiveSession = Depends(get_async_session)
 
@@ -44,3 +44,10 @@ def dish_service():
 
 
 ActiveDishService = Depends(dish_service)
+
+
+def cached_dish_service():
+    return CachedDishService(DishRepository())
+
+
+ActiveCachedDishService = Depends(cached_dish_service)

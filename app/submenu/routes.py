@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import ActiveSession, ActiveCachedSubmenuService
+from app.dependencies import ActiveCachedSubmenuService, ActiveSession
 from app.models import Submenu
 from app.submenu.schemas import SubmenuResponse
 from app.submenu.services import CachedSubmenuService
