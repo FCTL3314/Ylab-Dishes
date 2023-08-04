@@ -50,7 +50,7 @@ class DishRepository(AbstractCRUDRepository):
 
     async def get(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
-    ) -> Row:
+    ) -> Row | None:
         stmt = self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id)
         result = await session.execute(stmt)
         return result.first()
@@ -84,4 +84,4 @@ class DishRepository(AbstractCRUDRepository):
     async def delete(dish: Dish, session: AsyncSession) -> dict:
         await session.delete(dish)
         await session.commit()
-        return {"status": True, "message": "The dish has been deleted"}
+        return {'status': True, 'message': 'The dish has been deleted'}

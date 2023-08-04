@@ -12,36 +12,36 @@ from app.models import Menu
 router = APIRouter()
 
 
-@router.get("/{menu_id}/", response_model=MenuResponse)
+@router.get('/{menu_id}/', response_model=MenuResponse)
 async def menu_retrieve(
     menu_id: UUID,
     menu_service: CachedMenuService = ActiveCachedMenuService,
     session: AsyncSession = ActiveSession,
 ) -> MenuResponse:
     response = await menu_service.retrieve(menu_id, session)
-    return response
+    return response  # type: ignore
 
 
-@router.get("/", response_model=list[MenuResponse])
+@router.get('/', response_model=list[MenuResponse])
 async def menu_list(
     menu_service: CachedMenuService = ActiveCachedMenuService,
     session: AsyncSession = ActiveSession,
 ) -> list[MenuResponse]:
     response = await menu_service.list(session)
-    return response
+    return response  # type: ignore
 
 
-@router.post("/", response_model=MenuResponse, status_code=HTTPStatus.CREATED)
+@router.post('/', response_model=MenuResponse, status_code=HTTPStatus.CREATED)
 async def menu_create(
     menu: Menu,
     menu_service: CachedMenuService = ActiveCachedMenuService,
     session: AsyncSession = ActiveSession,
 ) -> MenuResponse:
     response = await menu_service.create(menu, session)
-    return response
+    return response  # type: ignore
 
 
-@router.patch("/{menu_id}/", response_model=MenuResponse)
+@router.patch('/{menu_id}/', response_model=MenuResponse)
 async def menu_patch(
     menu_id: UUID,
     updated_menu: Menu,
@@ -49,10 +49,10 @@ async def menu_patch(
     session: AsyncSession = ActiveSession,
 ) -> MenuResponse:
     response = await menu_service.update(menu_id, updated_menu, session)
-    return response
+    return response  # type: ignore
 
 
-@router.delete("/{menu_id}/")
+@router.delete('/{menu_id}/')
 async def menu_delete(
     menu_id: UUID,
     menu_service: CachedMenuService = ActiveCachedMenuService,

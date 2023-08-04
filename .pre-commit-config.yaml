@@ -9,6 +9,7 @@ repos:
         exclude: launch.json
     -   id: check-case-conflict  # проверяет файлы, которые могут конфликтовать в файловых системах без учета регистра.
     -   id: check-merge-conflict  # проверяет файлы, содержащие конфликтные строки слияния.
+    -   id: double-quote-string-fixer  # заменяет " на '
     -   id: end-of-file-fixer  # добавляет пустую строку в конце файла
 
 # Отсортировывает импорты в проекте
@@ -38,7 +39,7 @@ repos:
     rev: 6.0.0
     hooks:
     -   id: flake8
-        exclude: "__init__.py"
+        exclude: "(__init__.py)|(migrations)"
         args: ["--ignore=E501,F821", "--max-line-length=120"]
 
 # Проверка статических типов с помощью mypy

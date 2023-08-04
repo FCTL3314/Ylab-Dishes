@@ -24,7 +24,7 @@ class SubmenuRepository(AbstractCRUDRepository):
             return first[0] if orm_object else first
         return None
 
-    async def get(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession) -> Row:
+    async def get(self, menu_id: UUID, submenu_id: UUID, session: AsyncSession) -> Row | None:
         stmt = self.get_base_query(menu_id).where(
             Submenu.id == submenu_id,
         )
@@ -35,7 +35,7 @@ class SubmenuRepository(AbstractCRUDRepository):
         result = await session.execute(self.get_base_query(menu_id))
         return result.all()
 
-    async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession) -> Row:
+    async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession) -> Row | None:
         menu.submenus.append(submenu)
         session.add(submenu)
         await session.commit()
@@ -54,22 +54,22 @@ class SubmenuRepository(AbstractCRUDRepository):
 
         await session.commit()
         await session.refresh(submenu)
-        return await self.get(submenu.menu_id, submenu.id, session)
+        return await self.get(submenu.menu_id, submenu.id, session)  # type: ignore
 
     async def delete(self, submenu: Submenu, session: AsyncSession) -> dict:
         await session.delete(submenu)
         await session.commit()
-        return {"status": True, "message": "The submenu has been deleted"}
+        return {'status': True, 'message': 'The submenu has been deleted'}
 
 
 class SubmenuWithCountingRepository(SubmenuRepository):
-    def get_base_query(self, menu_id: UUID) -> Select:
+    def get_base_query(self, menu_id: UUID) -> Select:  # type: ignore
         return (
             select(
                 Submenu.id,
                 Submenu.title,
                 Submenu.description,
-                func.count(distinct(Dish.id)).label("dishes_count"),
+                func.count(distinct(Dish.id)).label('dishes_count'),
             )
             .outerjoin(Menu, Submenu.menu_id == Menu.id)
             .outerjoin(Dish, Dish.submenu_id == Submenu.id)

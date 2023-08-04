@@ -12,7 +12,7 @@ from app.submenu.services import CachedSubmenuService
 router = APIRouter()
 
 
-@router.get("/{submenu_id}/", response_model=SubmenuResponse)
+@router.get('/{submenu_id}/', response_model=SubmenuResponse)
 async def submenu_retrieve(
     menu_id: UUID,
     submenu_id: UUID,
@@ -20,20 +20,20 @@ async def submenu_retrieve(
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
     response = await submenu_service.retrieve(menu_id, submenu_id, session)
-    return response
+    return response  # type: ignore
 
 
-@router.get("/", response_model=list[SubmenuResponse])
+@router.get('/', response_model=list[SubmenuResponse])
 async def submenu_list(
     menu_id: UUID,
     submenu_service: CachedSubmenuService = ActiveCachedSubmenuService,
     session: AsyncSession = ActiveSession,
 ) -> list[SubmenuResponse]:
     response = await submenu_service.list(menu_id, session)
-    return response
+    return response  # type: ignore
 
 
-@router.post("/", response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
+@router.post('/', response_model=SubmenuResponse, status_code=HTTPStatus.CREATED)
 async def submenu_create(
     menu_id: UUID,
     submenu: Submenu,
@@ -41,10 +41,10 @@ async def submenu_create(
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
     response = await submenu_service.create(menu_id, submenu, session)
-    return response
+    return response  # type: ignore
 
 
-@router.patch("/{submenu_id}/", response_model=SubmenuResponse)
+@router.patch('/{submenu_id}/', response_model=SubmenuResponse)
 async def submenu_patch(
     menu_id: UUID,
     submenu_id: UUID,
@@ -55,10 +55,10 @@ async def submenu_patch(
     response = await submenu_service.update(
         menu_id, submenu_id, updated_submenu, session
     )
-    return response
+    return response  # type: ignore
 
 
-@router.delete("/{submenu_id}/")
+@router.delete('/{submenu_id}/')
 async def submenu_delete(
     menu_id: UUID,
     submenu_id: UUID,

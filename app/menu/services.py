@@ -9,30 +9,30 @@ from app.models import Menu
 from app.redis import get_cached_data_or_set_new, redis
 from app.utils import is_obj_exists_or_404
 
-MENU_NOT_FOUND_MESSAGE = "menu not found"
+MENU_NOT_FOUND_MESSAGE = 'menu not found'
 
 
 class MenuService(AbstractCRUDService):
     async def retrieve(
         self, menu_id: UUID, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
+    ) -> Menu | MenuResponse:
         menu = await self.repository.get(menu_id, session)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
     async def list(
         self, session: AsyncSession
-    ) -> list[MenuResponse] | list[MenuResponse]:
+    ) -> list[Menu] | list[MenuResponse]:
         return await self.repository.all(session)
 
     async def create(
         self, menu: Menu, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
+    ) -> Menu | MenuResponse:
         return await self.repository.create(menu, session)
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
+    ) -> Menu | MenuResponse:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.update(menu, updated_menu, session)
@@ -46,7 +46,7 @@ class MenuService(AbstractCRUDService):
 class CachedMenuService(MenuService):
     async def retrieve(
         self, menu_id: UUID, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
+    ) -> Menu | MenuResponse:
         menu = await get_cached_data_or_set_new(
             key=MENU_CACHE_TEMPLATE.format(id=menu_id),
             callback=lambda: super(CachedMenuService, self).retrieve(menu_id, session),
@@ -56,7 +56,7 @@ class CachedMenuService(MenuService):
 
     async def list(
         self, session: AsyncSession
-    ) -> list[MenuResponse] | list[MenuResponse]:
+    ) -> list[Menu] | list[MenuResponse]:
         menus = await get_cached_data_or_set_new(
             key=MENUS_CACHE_KEY,
             callback=lambda: super(CachedMenuService, self).list(session),
@@ -66,15 +66,15 @@ class CachedMenuService(MenuService):
 
     async def create(
         self, menu: Menu, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
-        menu = await super().create(menu, session)
+    ) -> Menu | MenuResponse:
+        menu = await super().create(menu, session)  # type: ignore
         await CachedMenuService.clear_list_cache()
         return menu
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
-    ) -> MenuResponse | MenuResponse:
-        updated_menu = await super().update(menu_id, updated_menu, session)
+    ) -> Menu | MenuResponse:
+        updated_menu = await super().update(menu_id, updated_menu, session)  # type: ignore
         await CachedMenuService.clear_all_cache(menu_id)
         return updated_menu
 
@@ -92,6 +92,6 @@ class CachedMenuService(MenuService):
         await redis.delete(MENUS_CACHE_KEY)
 
     @classmethod
-    async def clear_all_cache(cls, manu_id: UUID) -> None:
-        await cls.clear_retrieve_cache(manu_id)
+    async def clear_all_cache(cls, menu_id: UUID) -> None:
+        await cls.clear_retrieve_cache(menu_id)
         await cls.clear_list_cache()

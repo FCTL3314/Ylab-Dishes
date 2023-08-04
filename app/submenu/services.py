@@ -15,7 +15,7 @@ from app.submenu.constants import (
 from app.submenu.schemas import SubmenuResponse
 from app.utils import is_obj_exists_or_404
 
-SUBMENU_NOT_FOUND_MESSAGE = "submenu not found"
+SUBMENU_NOT_FOUND_MESSAGE = 'submenu not found'
 
 
 class SubmenuService(AbstractCRUDService):
@@ -89,7 +89,7 @@ class CachedSubmenuService(SubmenuService):
     ) -> Submenu | SubmenuResponse:
         submenu = await super().create(
             menu_id, submenu, session
-        )
+        )  # type: ignore
         await CachedSubmenuService.clear_list_cache()
         await CachedMenuService.clear_all_cache(menu_id)
         return submenu
@@ -103,7 +103,7 @@ class CachedSubmenuService(SubmenuService):
     ) -> Submenu | SubmenuResponse:
         updated_submenu = await super().update(
             menu_id, submenu_id, updated_submenu, session
-        )
+        )  # type: ignore
         await CachedSubmenuService.clear_all_cache(submenu_id)
         return updated_submenu
 
