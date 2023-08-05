@@ -11,6 +11,7 @@ from app.common.tests import (
     get_model_objects_count,
     is_response_match_object_fields,
 )
+from app.main import router
 from app.models import Dish, Submenu
 
 
@@ -18,15 +19,14 @@ def get_base_url(menu_id: UUID, submenu_id: UUID):
     return f'api/v1/menus/{menu_id}/submenus/{submenu_id}/'
 
 
-async def get_related_submenu(dish: Dish, session: AsyncSession):
-    result = await session.execute(select(Submenu).where(Submenu.id == dish.submenu_id))
-    return result.first()
-
-
 async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSession):
-    response = await client.get(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'
+    path = router.url_path_for(
+        'dish_retrieve',
+        menu_id=dish.submenu.menu_id,
+        submenu_id=dish.submenu_id,
+        dish_id=dish.id,
     )
+    response = await client.get(path)
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
@@ -37,9 +37,12 @@ async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSess
 
 
 async def test_dish_list(dish: Dish, client: AsyncClient, session: AsyncSession):
-    response = await client.get(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + 'dishes/'
+    path = router.url_path_for(
+        'dish_list',
+        menu_id=dish.submenu.menu_id,
+        submenu_id=dish.submenu_id,
     )
+    response = await client.get(path)
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
@@ -53,10 +56,12 @@ async def test_dish_create(
         'description': 'Test description',
         'price': '19.99',
     }
-    response = await client.post(
-        get_base_url(submenu.menu_id, submenu.id) + 'dishes/',
-        json=data,
+    path = router.url_path_for(
+        'dish_create',
+        menu_id=submenu.menu_id,
+        submenu_id=submenu.id,
     )
+    response = await client.post(path, json=data)
 
     assert response.status_code == HTTPStatus.CREATED
     assert is_response_match_object_fields(
@@ -75,10 +80,13 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
         'description': 'Updated description',
         'price': '12.33',
     }
-    response = await client.patch(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/',
-        json=data,
+    path = router.url_path_for(
+        'dish_patch',
+        menu_id=dish.submenu.menu_id,
+        submenu_id=dish.submenu_id,
+        dish_id=dish.id,
     )
+    response = await client.patch(path, json=data)
 
     assert response.status_code == HTTPStatus.OK
     assert is_response_match_object_fields(
@@ -87,9 +95,13 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
 
 
 async def test_dish_delete(dish: Dish, client: AsyncClient, session: AsyncSession):
-    response = await client.delete(
-        get_base_url(dish.submenu.menu_id, dish.submenu.id) + f'dishes/{dish.id}/'
+    path = router.url_path_for(
+        'dish_retrieve',
+        menu_id=dish.submenu.menu_id,
+        submenu_id=dish.submenu_id,
+        dish_id=dish.id,
     )
+    response = await client.delete(path)
 
     assert response.status_code == HTTPStatus.OK
     assert await get_model_objects_count(Dish, session) == 0
