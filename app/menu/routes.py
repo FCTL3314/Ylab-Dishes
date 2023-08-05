@@ -13,7 +13,7 @@ from app.models import Menu
 router = APIRouter()
 
 
-@router.get('/{menu_id}/', response_model=MenuResponse)
+@router.get('/{menu_id}/', name='menu:retrieve', response_model=MenuResponse)
 async def menu_retrieve(
     menu_id: UUID,
     menu_service: CachedMenuService = ActiveCachedMenuService,
@@ -23,7 +23,7 @@ async def menu_retrieve(
     return response
 
 
-@router.get('/', response_model=list[MenuResponse])
+@router.get('/', name='menu:list', response_model=list[MenuResponse])
 async def menu_list(
     menu_service: CachedMenuService = ActiveCachedMenuService,
     session: AsyncSession = ActiveSession,
@@ -32,7 +32,7 @@ async def menu_list(
     return response
 
 
-@router.post('/', response_model=MenuResponse, status_code=HTTPStatus.CREATED)
+@router.post('/', response_model=MenuResponse, name='menu:create', status_code=HTTPStatus.CREATED)
 async def menu_create(
     menu: Menu,
     menu_service: CachedMenuService = ActiveCachedMenuService,
@@ -42,7 +42,7 @@ async def menu_create(
     return response
 
 
-@router.patch('/{menu_id}/', response_model=MenuResponse)
+@router.patch('/{menu_id}/', name='menu:update', response_model=MenuResponse)
 async def menu_patch(
     menu_id: UUID,
     updated_menu: Menu,
@@ -53,7 +53,7 @@ async def menu_patch(
     return response
 
 
-@router.delete('/{menu_id}/')
+@router.delete('/{menu_id}/', name='menu:delete', response_model=DeletionResponse)
 async def menu_delete(
     menu_id: UUID,
     menu_service: CachedMenuService = ActiveCachedMenuService,

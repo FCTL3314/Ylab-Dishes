@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
@@ -15,13 +14,9 @@ from app.main import router
 from app.models import Dish, Submenu
 
 
-def get_base_url(menu_id: UUID, submenu_id: UUID):
-    return f'api/v1/menus/{menu_id}/submenus/{submenu_id}/'
-
-
 async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSession):
     path = router.url_path_for(
-        'dish_retrieve',
+        'dish:retrieve',
         menu_id=dish.submenu.menu_id,
         submenu_id=dish.submenu_id,
         dish_id=dish.id,
@@ -38,7 +33,7 @@ async def test_dish_retrieve(dish: Dish, client: AsyncClient, session: AsyncSess
 
 async def test_dish_list(dish: Dish, client: AsyncClient, session: AsyncSession):
     path = router.url_path_for(
-        'dish_list',
+        'dish:list',
         menu_id=dish.submenu.menu_id,
         submenu_id=dish.submenu_id,
     )
@@ -57,7 +52,7 @@ async def test_dish_create(
         'price': '19.99',
     }
     path = router.url_path_for(
-        'dish_create',
+        'dish:create',
         menu_id=submenu.menu_id,
         submenu_id=submenu.id,
     )
@@ -81,7 +76,7 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
         'price': '12.33',
     }
     path = router.url_path_for(
-        'dish_patch',
+        'dish:update',
         menu_id=dish.submenu.menu_id,
         submenu_id=dish.submenu_id,
         dish_id=dish.id,
@@ -96,7 +91,7 @@ async def test_dish_update(dish: Dish, client: AsyncClient, session: AsyncSessio
 
 async def test_dish_delete(dish: Dish, client: AsyncClient, session: AsyncSession):
     path = router.url_path_for(
-        'dish_retrieve',
+        'dish:retrieve',
         menu_id=dish.submenu.menu_id,
         submenu_id=dish.submenu_id,
         dish_id=dish.id,

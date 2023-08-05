@@ -16,7 +16,7 @@ from app.models import Dish, Menu
 
 async def test_menu_retrieve(menu: Menu, client: AsyncClient):
     response = await client.get(
-        router.url_path_for('menu_retrieve', menu_id=menu.id)
+        router.url_path_for('menu:retrieve', menu_id=menu.id)
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -28,7 +28,7 @@ async def test_menu_retrieve(menu: Menu, client: AsyncClient):
 
 
 async def test_menu_list(menu: Menu, client: AsyncClient):
-    response = await client.get(router.url_path_for('menu_list'))
+    response = await client.get(router.url_path_for('menu:list'))
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()) == 1
@@ -40,7 +40,7 @@ async def test_menu_create(client: AsyncClient, session: AsyncSession):
         'description': 'Test description',
     }
     response = await client.post(
-        router.url_path_for('menu_create'),
+        router.url_path_for('menu:create'),
         json=data,
     )
 
@@ -61,7 +61,7 @@ async def test_menu_update(menu: Menu, client: AsyncClient):
         'description': 'Updated description',
     }
     response = await client.patch(
-        router.url_path_for('menu_patch', menu_id=menu.id),
+        router.url_path_for('menu:update', menu_id=menu.id),
         json=data,
     )
 
@@ -73,7 +73,7 @@ async def test_menu_update(menu: Menu, client: AsyncClient):
 
 async def test_menu_delete(menu: Menu, client: AsyncClient, session: AsyncSession):
     response = await client.delete(
-        router.url_path_for('menu_retrieve', menu_id=menu.id)
+        router.url_path_for('menu:retrieve', menu_id=menu.id)
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -81,7 +81,9 @@ async def test_menu_delete(menu: Menu, client: AsyncClient, session: AsyncSessio
 
 
 async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
-    menu_retrieve = await client.get(f'api/v1/menus/{dish.submenu.menu_id}/')
+    menu_retrieve = await client.get(
+        router.url_path_for('menu:retrieve', menu_id=dish.submenu.menu_id),
+    )
     response = menu_retrieve.json()
 
     assert response['submenus_count'] == 1

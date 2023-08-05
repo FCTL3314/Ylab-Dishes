@@ -12,7 +12,7 @@ from app.models import Dish
 router = APIRouter()
 
 
-@router.get('/{dish_id}/', response_model=Dish)
+@router.get('/{dish_id}/', name='dish:retrieve', response_model=Dish)
 async def dish_retrieve(
     menu_id: UUID,
     submenu_id: UUID,
@@ -24,7 +24,7 @@ async def dish_retrieve(
     return response
 
 
-@router.get('/', response_model=list[Dish])
+@router.get('/', name='dish:list', response_model=list[Dish])
 async def dish_list(
     menu_id: UUID,
     submenu_id: UUID,
@@ -35,7 +35,7 @@ async def dish_list(
     return response
 
 
-@router.post('/', response_model=Dish, status_code=HTTPStatus.CREATED)
+@router.post('/', name='dish:create', response_model=Dish, status_code=HTTPStatus.CREATED)
 async def dish_create(
     menu_id: UUID,
     submenu_id: UUID,
@@ -47,7 +47,7 @@ async def dish_create(
     return response
 
 
-@router.patch('/{dish_id}/', response_model=Dish)
+@router.patch('/{dish_id}/', name='dish:update', response_model=Dish)
 async def dish_patch(
     menu_id: UUID,
     submenu_id: UUID,
@@ -62,7 +62,7 @@ async def dish_patch(
     return response
 
 
-@router.delete('/{dish_id}/')
+@router.delete('/{dish_id}/', name='dish:delete', response_model=DeletionResponse)
 async def dish_delete(
     menu_id: UUID,
     submenu_id: UUID,

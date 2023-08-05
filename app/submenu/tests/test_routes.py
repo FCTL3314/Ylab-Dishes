@@ -16,7 +16,7 @@ from app.models import Dish, Menu, Submenu
 
 async def test_submenu_retrieve(submenu: Submenu, client: AsyncClient):
     path = router.url_path_for(
-        'submenu_retrieve',
+        'submenu:retrieve',
         menu_id=submenu.menu_id,
         submenu_id=submenu.id,
     )
@@ -31,7 +31,7 @@ async def test_submenu_retrieve(submenu: Submenu, client: AsyncClient):
 
 
 async def test_submenu_list(submenu: Submenu, client: AsyncClient):
-    path = router.url_path_for('submenu_list', menu_id=submenu.menu_id)
+    path = router.url_path_for('submenu:list', menu_id=submenu.menu_id)
     response = await client.get(path)
 
     assert response.status_code == HTTPStatus.OK
@@ -44,7 +44,7 @@ async def test_submenu_create(menu: Menu, client: AsyncClient, session: AsyncSes
         'description': 'Test description',
     }
     response = await client.post(
-        router.url_path_for('submenu_create', menu_id=menu.id),
+        router.url_path_for('submenu:create', menu_id=menu.id),
         json=data,
     )
 
@@ -65,7 +65,7 @@ async def test_submenu_update(submenu: Submenu, client: AsyncClient):
         'description': 'Updated description',
     }
     path = router.url_path_for(
-        'submenu_patch',
+        'submenu:update',
         menu_id=submenu.menu_id,
         submenu_id=submenu.id,
     )
@@ -81,7 +81,7 @@ async def test_submenu_delete(
         submenu: Submenu, client: AsyncClient, session: AsyncSession
 ):
     path = router.url_path_for(
-        'submenu_delete',
+        'submenu:delete',
         menu_id=submenu.menu_id,
         submenu_id=submenu.id,
     )
@@ -93,7 +93,7 @@ async def test_submenu_delete(
 
 async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
     path = router.url_path_for(
-        'submenu_retrieve',
+        'submenu:retrieve',
         menu_id=dish.submenu.menu_id,
         submenu_id=dish.submenu.id,
     )
