@@ -1,3 +1,4 @@
+from typing import Generic, TypeVar
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
 from app.menu.constants import MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY, MENUS_CACHE_TIME
-from app.menu.schemas import MenuResponse
+from app.menu.schemas import MenuBase
 from app.models import Menu
 from app.redis import get_cached_data_or_set_new, redis
 from app.utils import is_obj_exists_or_404
@@ -13,27 +14,30 @@ from app.utils import is_obj_exists_or_404
 MENU_NOT_FOUND_MESSAGE = 'menu not found'
 
 
-class MenuService(AbstractCRUDService):
+MenuResponseType = TypeVar('MenuResponseType', bound=MenuBase)
+
+
+class MenuService(AbstractCRUDService, Generic[MenuResponseType]):
     async def retrieve(
         self, menu_id: UUID, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         menu = await self.repository.get(menu_id, session)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
     async def list(
         self, session: AsyncSession
-    ) -> list[MenuResponse]:
+    ) -> list[MenuResponseType]:
         return await self.repository.all(session)
 
     async def create(
         self, menu: Menu, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         return await self.repository.create(menu, session)
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.update(menu, updated_menu, session)
@@ -45,10 +49,10 @@ class MenuService(AbstractCRUDService):
         return DeletionResponse(**{'status': True, 'message': 'The menu has been deleted'})
 
 
-class CachedMenuService(MenuService):
+class CachedMenuService(MenuService[MenuResponseType]):
     async def retrieve(
         self, menu_id: UUID, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         menu = await get_cached_data_or_set_new(
             key=MENU_CACHE_TEMPLATE.format(id=menu_id),
             callback=lambda: super(CachedMenuService, self).retrieve(menu_id, session),
@@ -58,7 +62,7 @@ class CachedMenuService(MenuService):
 
     async def list(
         self, session: AsyncSession
-    ) -> list[MenuResponse]:
+    ) -> list[MenuResponseType]:
         menus = await get_cached_data_or_set_new(
             key=MENUS_CACHE_KEY,
             callback=lambda: super(CachedMenuService, self).list(session),
@@ -68,14 +72,14 @@ class CachedMenuService(MenuService):
 
     async def create(
         self, menu: Menu, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         _menu = await super().create(menu, session)
         await CachedMenuService.clear_list_cache()
         return _menu
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
-    ) -> MenuResponse:
+    ) -> MenuResponseType:
         _updated_menu = await super().update(menu_id, updated_menu, session)
         await CachedMenuService.clear_all_cache(menu_id)
         return _updated_menu
