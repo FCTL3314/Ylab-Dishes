@@ -11,7 +11,7 @@ from app.submenu.repository import SubmenuRepository
 from app.submenu.services import SUBMENU_NOT_FOUND_MESSAGE, CachedSubmenuService
 from app.utils import is_obj_exists_or_404
 
-DISH_NOT_FOUND_MESSAGE = "dish not found"
+DISH_NOT_FOUND_MESSAGE = 'dish not found'
 
 
 class DishService(AbstractCRUDService):
