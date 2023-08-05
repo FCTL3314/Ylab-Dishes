@@ -49,10 +49,9 @@ class MenuRepository(AbstractCRUDRepository):
         await session.refresh(menu)
         return await self.get(menu.id, session)
 
-    async def delete(self, menu: Menu, session: AsyncSession) -> dict:
+    async def delete(self, menu: Menu, session: AsyncSession) -> None:
         await session.delete(menu)
         await session.commit()
-        return {'status': True, 'message': 'The menu has been deleted'}
 
 
 class MenuWithCountingRepository(MenuRepository):

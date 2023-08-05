@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
 from app.menu.repository import MenuRepository
 from app.menu.services import MENU_NOT_FOUND_MESSAGE, CachedMenuService
@@ -53,12 +54,13 @@ class SubmenuService(AbstractCRUDService):
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
-    ) -> dict:
+    ) -> DeletionResponse:
         submenu = await self.repository.get_by_id(
             menu_id, submenu_id, session, orm_object=True
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
-        return await self.repository.delete(submenu, session)
+        await self.repository.delete(submenu, session)
+        return DeletionResponse(**{'status': True, 'message': 'The submenu has been deleted'})
 
 
 class CachedSubmenuService(SubmenuService):
@@ -109,7 +111,7 @@ class CachedSubmenuService(SubmenuService):
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
-    ) -> dict:
+    ) -> DeletionResponse:
         response = await super().delete(
             menu_id, submenu_id, session
         )

@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
 from app.dish.constants import DISH_CACHE_TEMPLATE, DISHES_CACHE_KEY, DISHES_CACHE_TIME
 from app.menu.services import CachedMenuService
@@ -52,12 +53,13 @@ class DishService(AbstractCRUDService):
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
-    ) -> dict:
+    ) -> DeletionResponse:
         dish = await self.repository.get_by_id(
             menu_id, submenu_id, dish_id, session, orm_object=True
         )
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
-        return await self.repository.delete(dish, session)
+        await self.repository.delete(dish, session)
+        return DeletionResponse(**{'status': True, 'message': 'The dish has been deleted'})
 
 
 class CachedDishService(DishService):
@@ -105,7 +107,7 @@ class CachedDishService(DishService):
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
-    ) -> dict:
+    ) -> DeletionResponse:
         response = await super().delete(menu_id, submenu_id, dish_id, session)
         await CachedDishService.clear_all_cache(dish_id)
         await CachedSubmenuService.clear_all_cache(submenu_id)

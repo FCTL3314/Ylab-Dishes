@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.schemas import DeletionResponse
 from app.dependencies import ActiveCachedDishService, ActiveSession
 from app.dish.services import CachedDishService
 from app.models import Dish
@@ -68,6 +69,6 @@ async def dish_delete(
     dish_id: UUID,
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
-) -> dict:
+) -> DeletionResponse:
     response = await dish_service.delete(menu_id, submenu_id, dish_id, session)
     return response

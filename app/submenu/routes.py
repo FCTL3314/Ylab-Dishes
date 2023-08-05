@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.schemas import DeletionResponse
 from app.dependencies import ActiveCachedSubmenuService, ActiveSession
 from app.models import Submenu
 from app.submenu.schemas import SubmenuResponse
@@ -64,6 +65,6 @@ async def submenu_delete(
     submenu_id: UUID,
     submenu_service: CachedSubmenuService = ActiveCachedSubmenuService,
     session: AsyncSession = ActiveSession,
-) -> dict:
+) -> DeletionResponse:
     response = await submenu_service.delete(menu_id, submenu_id, session)
     return response

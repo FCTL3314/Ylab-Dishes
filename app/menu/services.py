@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
 from app.menu.constants import MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY, MENUS_CACHE_TIME
 from app.menu.schemas import MenuResponse
@@ -37,10 +38,11 @@ class MenuService(AbstractCRUDService):
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.update(menu, updated_menu, session)
 
-    async def delete(self, menu_id: UUID, session: AsyncSession) -> dict:
+    async def delete(self, menu_id: UUID, session: AsyncSession) -> DeletionResponse:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
-        return await self.repository.delete(menu, session)
+        await self.repository.delete(menu, session)
+        return DeletionResponse(**{'status': True, 'message': 'The menu has been deleted'})
 
 
 class CachedMenuService(MenuService):
@@ -78,7 +80,7 @@ class CachedMenuService(MenuService):
         await CachedMenuService.clear_all_cache(menu_id)
         return _updated_menu
 
-    async def delete(self, menu_id: UUID, session: AsyncSession) -> dict:
+    async def delete(self, menu_id: UUID, session: AsyncSession) -> DeletionResponse:
         response = await super().delete(menu_id, session)
         await CachedMenuService.clear_all_cache(menu_id)
         return response

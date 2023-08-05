@@ -81,7 +81,6 @@ class DishRepository(AbstractCRUDRepository):
         return dish
 
     @staticmethod
-    async def delete(dish: Dish, session: AsyncSession) -> dict:
+    async def delete(dish: Dish, session: AsyncSession) -> None:
         await session.delete(dish)
         await session.commit()
-        return {'status': True, 'message': 'The dish has been deleted'}
