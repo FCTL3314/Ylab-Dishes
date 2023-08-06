@@ -95,6 +95,8 @@ class CachedDishService(DishService[DishResponseType]):
     ) -> DishResponseType:
         submenu = await super().create(menu_id, submenu_id, dish, session)
         await CachedDishService.clear_list_cache()
+        await CachedSubmenuService.clear_list_cache()
+        await CachedMenuService.clear_list_cache()
         return submenu
 
     async def update(
