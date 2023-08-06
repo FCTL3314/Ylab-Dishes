@@ -6,13 +6,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
 from app.dependencies import ActiveCachedDishService, ActiveSession
+from app.dish.constants import DISH_TAG
 from app.dish.services import CachedDishService
 from app.models import Dish
 
 router = APIRouter()
 
 
-@router.get('/{dish_id}/', name='dish:retrieve', response_model=Dish)
+@router.get(
+    '/{dish_id}/',
+    name='dish:retrieve',
+    response_model=Dish,
+    description='Get dish details by ID.',
+    tags=[DISH_TAG],
+)
 async def dish_retrieve(
     menu_id: UUID,
     submenu_id: UUID,
@@ -24,7 +31,12 @@ async def dish_retrieve(
     return response
 
 
-@router.get('/', name='dish:list', response_model=list[Dish])
+@router.get(
+    '/', name='dish:list',
+    response_model=list[Dish],
+    description='Get a list of all dishes.',
+    tags=[DISH_TAG],
+)
 async def dish_list(
     menu_id: UUID,
     submenu_id: UUID,
@@ -35,7 +47,14 @@ async def dish_list(
     return response
 
 
-@router.post('/', name='dish:create', response_model=Dish, status_code=HTTPStatus.CREATED)
+@router.post(
+    '/',
+    name='dish:create',
+    response_model=Dish,
+    description='Create a new dish.',
+    status_code=HTTPStatus.CREATED,
+    tags=[DISH_TAG],
+)
 async def dish_create(
     menu_id: UUID,
     submenu_id: UUID,
@@ -47,7 +66,13 @@ async def dish_create(
     return response
 
 
-@router.patch('/{dish_id}/', name='dish:update', response_model=Dish)
+@router.patch(
+    '/{dish_id}/',
+    name='dish:update',
+    response_model=Dish,
+    description='Update a dish by ID.',
+    tags=[DISH_TAG],
+)
 async def dish_patch(
     menu_id: UUID,
     submenu_id: UUID,
@@ -62,7 +87,13 @@ async def dish_patch(
     return response
 
 
-@router.delete('/{dish_id}/', name='dish:delete', response_model=DeletionResponse)
+@router.delete(
+    '/{dish_id}/',
+    name='dish:delete',
+    response_model=DeletionResponse,
+    description='Delete a dish by ID.',
+    tags=[DISH_TAG],
+)
 async def dish_delete(
     menu_id: UUID,
     submenu_id: UUID,

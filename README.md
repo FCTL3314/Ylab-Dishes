@@ -48,4 +48,5 @@ def __init__(self, **kwargs):
 
 # 🪝 Pre-Commit hooks
 
-1. #### Run `pre-commit install` command in the terminal.
+1. #### Install: `pre-commit install`
+2. #### Run: `pre-commit run --all-files`

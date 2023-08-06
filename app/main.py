@@ -9,7 +9,11 @@ app = FastAPI(debug=Config.DEBUG)
 router = APIRouter(prefix='/api/v1')
 
 
-@router.get('/ping')
+@router.get(
+    '/ping',
+    tags=['Utility'],
+    description='Check if the server is running.',
+)
 async def ping():
     return {'msg': 'pong'}
 
