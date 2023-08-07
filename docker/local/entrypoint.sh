@@ -1,6 +1,6 @@
 #!/bin/sh
 
-alembic revision --autogenerate -m "Database creation"
-alembic upgrade head
+poetry run alembic revision --autogenerate -m "Database creation"
+poetry run alembic upgrade head
 
-uvicorn app.main:app --reload --host 0.0.0.0
+poetry run uvicorn app.main:app --reload --host 0.0.0.0

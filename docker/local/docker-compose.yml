@@ -13,8 +13,6 @@ services:
 
   redis:
     image: redis:alpine
-    volumes:
-      - ../../data/redis/:/data/
 
   web:
     build:

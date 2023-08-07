@@ -13,3 +13,7 @@ services:
 
   web:
     entrypoint: docker/test/entrypoint.sh
+    depends_on:
+      - db
+      - test_db
+      - redis

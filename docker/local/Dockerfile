@@ -7,4 +7,8 @@ WORKDIR /opt/YlabDishes
 
 COPY ./ ./
 
-RUN pip install --upgrade pip && pip install -r requirements/local.txt
+RUN pip install --upgrade pip &&  \
+    pip install poetry
+
+RUN poetry config installer.max-workers 10 &&  \
+    poetry install

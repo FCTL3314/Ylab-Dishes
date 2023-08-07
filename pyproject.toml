@@ -1,5 +1,35 @@
+[tool.poetry]
+name = "ylab-dishes"
+version = "0.1.0"
+description = "FastApi project for selection for an internship from Ylab company."
+authors = ["Nikita Solouyou <solovev.nikita.05@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "0.100.0"
+uvicorn = "0.23.1"
+SQLModel = "0.0.8"
+SQLAlchemy = "1.4.41"
+alembic = "1.11.1"
+psycopg2-binary = "2.9.6"
+asyncpg = "0.28.0"
+python-dotenv = "1.0.0"
+aioredis = "2.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "7.4.0"
+pytest-asyncio = "0.21.1"
+httpx = "0.24.1"
+mixer = "7.2.2"
+pre-commit = "3.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
 [tool.pytest.ini_options]
-pythonpath = [
-    "tests"
-]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
 asyncio_mode = "auto"

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-alembic revision --autogenerate -m "Database creation"
-alembic upgrade head
+poetry run alembic revision --autogenerate -m "Database creation"
+poetry run alembic upgrade head
 
-pytest . -W ignore::Warning -s
+poetry run pytest . -W ignore::Warning -s
