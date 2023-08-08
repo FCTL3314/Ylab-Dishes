@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10-3777A7?style=flat-square)](https://www.python.org/)
 [![Fastapi](https://img.shields.io/badge/FastAPI-0.100.0-009688?style=flat-square)](https://fastapi.tiangolo.com/)
 [![Poetry](https://img.shields.io/badge/Poetry-1.5.1-0992E1?style=flat-square)](https://python-poetry.org/)
-[![Pytest](https://img.shields.io/badge/Pytest-passed-0ca644)](https://docs.pytest.org/en/7.4.x/)
+[![Pytest](https://img.shields.io/badge/Pytest-passed-0ca644?style=flat-square)](https://docs.pytest.org/en/7.4.x/)
 [![Black](https://img.shields.io/badge/Style-Black-black?style=flat-square)](https://black.readthedocs.io/en/stable/)
 
 #### Проект для отбора на стажировку от компании Ylab.

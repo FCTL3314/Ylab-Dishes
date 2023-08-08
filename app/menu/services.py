@@ -81,23 +81,23 @@ class CachedMenuService(MenuService[MenuResponseType]):
         self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
     ) -> MenuResponseType:
         _updated_menu = await super().update(menu_id, updated_menu, session)
-        await CachedMenuService.clear_all_cache(menu_id)
+        await CachedMenuService.clear_cache(menu_id)
         return _updated_menu
 
     async def delete(self, menu_id: UUID, session: AsyncSession) -> DeletionResponse:
         response = await super().delete(menu_id, session)
-        await CachedMenuService.clear_all_cache(menu_id)
+        await CachedMenuService.clear_cache(menu_id)
         return response
 
     @staticmethod
     async def clear_retrieve_cache(menu_id: UUID) -> None:
-        await redis.delete(MENU_CACHE_TEMPLATE.format(id=menu_id))
+        await redis.unlink(MENU_CACHE_TEMPLATE.format(id=menu_id))
 
     @staticmethod
     async def clear_list_cache() -> None:
-        await redis.delete(MENUS_CACHE_KEY)
+        await redis.unlink(MENUS_CACHE_KEY)
 
     @classmethod
-    async def clear_all_cache(cls, menu_id: UUID) -> None:
+    async def clear_cache(cls, menu_id: UUID) -> None:
         await cls.clear_retrieve_cache(menu_id)
         await cls.clear_list_cache()

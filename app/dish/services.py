@@ -108,27 +108,27 @@ class CachedDishService(DishService[DishResponseType]):
         session: AsyncSession,
     ) -> DishResponseType:
         dish = await super().update(menu_id, submenu_id, dish_id, updated_dish, session)
-        await CachedDishService.clear_all_cache(dish_id)
+        await CachedDishService.clear_cache(dish_id)
         return dish
 
     async def delete(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
     ) -> DeletionResponse:
         response = await super().delete(menu_id, submenu_id, dish_id, session)
-        await CachedDishService.clear_all_cache(dish_id)
-        await CachedSubmenuService.clear_all_cache(submenu_id)
-        await CachedMenuService.clear_all_cache(menu_id)
+        await CachedDishService.clear_cache(dish_id)
+        await CachedSubmenuService.clear_cache(submenu_id)
+        await CachedMenuService.clear_cache(menu_id)
         return response
 
     @staticmethod
     async def clear_retrieve_cache(dish_id):
-        await redis.delete(DISH_CACHE_TEMPLATE.format(id=dish_id))
+        await redis.unlink(DISH_CACHE_TEMPLATE.format(id=dish_id))
 
     @staticmethod
     async def clear_list_cache():
-        await redis.delete(DISHES_CACHE_KEY)
+        await redis.unlink(DISHES_CACHE_KEY)
 
     @classmethod
-    async def clear_all_cache(cls, dish_id):
+    async def clear_cache(cls, dish_id):
         await cls.clear_retrieve_cache(dish_id)
         await cls.clear_list_cache()

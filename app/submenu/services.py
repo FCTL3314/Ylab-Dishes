@@ -97,7 +97,7 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
             menu_id, submenu, session
         )
         await CachedSubmenuService.clear_list_cache()
-        await CachedMenuService.clear_all_cache(menu_id)
+        await CachedMenuService.clear_cache(menu_id)
         return _submenu
 
     async def update(
@@ -110,7 +110,7 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         _updated_submenu = await super().update(
             menu_id, submenu_id, updated_submenu, session
         )
-        await CachedSubmenuService.clear_all_cache(submenu_id)
+        await CachedSubmenuService.clear_cache(submenu_id)
         return _updated_submenu
 
     async def delete(
@@ -119,19 +119,19 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         response = await super().delete(
             menu_id, submenu_id, session
         )
-        await CachedSubmenuService.clear_all_cache(submenu_id)
-        await CachedMenuService.clear_all_cache(menu_id)
+        await CachedSubmenuService.clear_cache(submenu_id)
+        await CachedMenuService.clear_cache(menu_id)
         return response
 
     @staticmethod
     async def clear_retrieve_cache(submenu_id: UUID) -> None:
-        await redis.delete(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
+        await redis.unlink(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
 
     @staticmethod
     async def clear_list_cache() -> None:
-        await redis.delete(SUBMENUS_CACHE_KEY)
+        await redis.unlink(SUBMENUS_CACHE_KEY)
 
     @classmethod
-    async def clear_all_cache(cls, submenu_id: UUID) -> None:
+    async def clear_cache(cls, submenu_id: UUID) -> None:
         await cls.clear_retrieve_cache(submenu_id)
         await cls.clear_list_cache()
