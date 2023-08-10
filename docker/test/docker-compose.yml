@@ -17,3 +17,4 @@ services:
       - db
       - test_db
       - redis
+      - celery

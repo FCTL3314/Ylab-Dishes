@@ -61,6 +61,12 @@ class DishRepository(AbstractCRUDRepository):
         result = await session.execute(self.get_base_query(menu_id, submenu_id))
         return result.all()
 
+    async def scalar_all(
+        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+    ) -> list[Row]:
+        result = await session.execute(self.get_base_query(menu_id, submenu_id))
+        return result.scalars().all()
+
     @staticmethod
     async def create(submenu: Submenu, dish: Dish, session: AsyncSession) -> Dish:
         submenu.dishes.append(dish)

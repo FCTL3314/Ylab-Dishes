@@ -64,7 +64,7 @@ class SubmenuService(AbstractCRUDService, Generic[SubmenuResponseType]):
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
         await self.repository.delete(submenu, session)
-        return DeletionResponse(**{'status': True, 'message': 'The submenu has been deleted'})
+        return DeletionResponse(status=True, message='The submenu has been deleted')
 
 
 class CachedSubmenuService(SubmenuService[SubmenuResponseType]):

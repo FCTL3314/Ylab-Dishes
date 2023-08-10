@@ -20,6 +20,10 @@ class Config:
     REDIS_PORT = os.environ.get('REDIS_PORT')
     REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}'
 
+    RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST')
+    RABBITMQ_PORT = os.environ.get('RABBITMQ_PORT')
+    RABBITMQ_URL = f'amqp://guest:guest@{RABBITMQ_HOST}:{RABBITMQ_PORT}'
+
 
 class TestConfig(Config):
     DATABASE_NAME = os.environ.get('TEST_DATABASE_NAME')

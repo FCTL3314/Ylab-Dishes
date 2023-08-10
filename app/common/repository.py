@@ -10,6 +10,10 @@ class AbstractRepository(ABC):
     def all(self, *args, **kwargs):
         raise NotImplementedError
 
+    @abstractmethod
+    def scalar_all(self, *args, **kwargs):
+        raise NotImplementedError
+
 
 class AbstractCRUDRepository(AbstractRepository):
     @abstractmethod

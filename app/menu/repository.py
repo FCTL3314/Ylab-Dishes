@@ -31,6 +31,11 @@ class MenuRepository(AbstractCRUDRepository):
         result = await session.execute(self.base_query)
         return result.all()
 
+    async def scalar_all(self, session: AsyncSession) -> list[Row]:
+        query = select(Menu)
+        result = await session.execute(query)
+        return result.scalars().all()
+
     async def create(self, menu: Menu, session: AsyncSession) -> Row | None:
         session.add(menu)
         await session.commit()

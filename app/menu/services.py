@@ -25,6 +25,11 @@ class MenuService(AbstractCRUDService, Generic[MenuResponseType]):
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
+    async def scalar_list(
+            self, session: AsyncSession
+    ) -> list[MenuResponseType]:
+        return await self.repository.scalar_all(session)
+
     async def list(
         self, session: AsyncSession
     ) -> list[MenuResponseType]:
@@ -46,7 +51,7 @@ class MenuService(AbstractCRUDService, Generic[MenuResponseType]):
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         await self.repository.delete(menu, session)
-        return DeletionResponse(**{'status': True, 'message': 'The menu has been deleted'})
+        return DeletionResponse(status=True, message='The menu has been deleted')
 
 
 class CachedMenuService(MenuService[MenuResponseType]):

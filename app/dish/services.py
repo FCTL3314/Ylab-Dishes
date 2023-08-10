@@ -63,7 +63,7 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
         )
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
         await self.repository.delete(dish, session)
-        return DeletionResponse(**{'status': True, 'message': 'The dish has been deleted'})
+        return DeletionResponse(status=True, message='The dish has been deleted')
 
 
 class CachedDishService(DishService[DishResponseType]):
