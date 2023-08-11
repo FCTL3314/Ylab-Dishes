@@ -4,10 +4,11 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.dependencies import ActiveSession
 from app.common.schemas import DeletionResponse
-from app.dependencies import ActiveCachedSubmenuService, ActiveSession
 from app.models import Submenu
 from app.submenu.constants import SUBMENU_TAG
+from app.submenu.dependencies import ActiveCachedSubmenuService
 from app.submenu.schemas import SubmenuResponse
 from app.submenu.services import CachedSubmenuService
 

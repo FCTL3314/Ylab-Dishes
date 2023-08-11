@@ -1,12 +1,11 @@
-import pickle
 from http import HTTPStatus
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
-from app.celery import celery
 from app.data_processing.constraints import DATA_PROCESSING_TAG
-from app.data_processing.schemas import AllDataReportTaskCreated
-from app.data_processing.tasks import all_data_report_process_task
+from app.data_processing.dependencies import ActiveAllMenusService
+from app.data_processing.schemas import TaskCreated
+from app.data_processing.services import AllMenusService
 from app.menu.schemas import MenuNestedResponse
 
 router = APIRouter()
@@ -17,22 +16,20 @@ router = APIRouter()
     tags=[DATA_PROCESSING_TAG],
     response_model=list[MenuNestedResponse],
 )
-async def all_data_report_retrieve(task_id: str) -> list[MenuNestedResponse]:
-    task = celery.AsyncResult(task_id)
-    if task.ready():
-        return pickle.loads(task.result)
-    raise HTTPException(
-        detail='Task not found or still being processing.',
-        status_code=HTTPStatus.ACCEPTED,
-    )
+async def menus_with_attachments_list(
+        task_id: str,
+        menu_with_attachments_service: AllMenusService = ActiveAllMenusService,
+) -> list[MenuNestedResponse]:
+    return await menu_with_attachments_service.get_task_result(task_id)
 
 
 @router.post(
     '/all/',
     tags=[DATA_PROCESSING_TAG],
     status_code=HTTPStatus.CREATED,
-    response_model=AllDataReportTaskCreated,
+    response_model=TaskCreated,
 )
-async def all_data_report_create() -> AllDataReportTaskCreated:
-    task = all_data_report_process_task.delay()
-    return AllDataReportTaskCreated(task_id=task.id)
+async def menus_with_attachments_task_create(
+    menu_with_attachments_service: AllMenusService = ActiveAllMenusService,
+) -> TaskCreated:
+    return await menu_with_attachments_service.create_task()

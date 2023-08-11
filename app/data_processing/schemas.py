@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel
 
 
-class AllDataReportTaskCreated(SQLModel):
+class TaskCreated(SQLModel):
     task_id: str

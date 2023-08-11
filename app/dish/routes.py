@@ -4,9 +4,10 @@ from uuid import UUID
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.dependencies import ActiveSession
 from app.common.schemas import DeletionResponse
-from app.dependencies import ActiveCachedDishService, ActiveSession
 from app.dish.constants import DISH_TAG
+from app.dish.dependencies import ActiveCachedDishService
 from app.dish.services import CachedDishService
 from app.models import Dish
 
