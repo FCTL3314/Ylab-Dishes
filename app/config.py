@@ -22,7 +22,8 @@ class Config:
 
     RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST')
     RABBITMQ_PORT = os.environ.get('RABBITMQ_PORT')
-    RABBITMQ_URL = f'amqp://guest:guest@{RABBITMQ_HOST}:{RABBITMQ_PORT}'
+    RABBITMQ_AMQP_URL = f'amqp://guest:guest@{RABBITMQ_HOST}:{RABBITMQ_PORT}'
+    RABBITMQ_RPC_URL = f'rpc://guest:guest@{RABBITMQ_HOST}:{RABBITMQ_PORT}'
 
 
 class TestConfig(Config):
