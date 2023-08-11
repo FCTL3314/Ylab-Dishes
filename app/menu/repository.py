@@ -27,14 +27,9 @@ class MenuRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         return result.first()
 
-    async def all(self, session: AsyncSession) -> list[Row]:
+    async def all(self, session: AsyncSession, scalar: bool = False) -> list[Row]:
         result = await session.execute(self.base_query)
-        return result.all()
-
-    async def scalar_all(self, session: AsyncSession) -> list[Row]:
-        query = select(Menu)
-        result = await session.execute(query)
-        return result.scalars().all()
+        return result.scalars().all() if scalar else result.all()
 
     async def create(self, menu: Menu, session: AsyncSession) -> Row | None:
         session.add(menu)

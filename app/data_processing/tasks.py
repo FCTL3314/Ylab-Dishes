@@ -2,14 +2,13 @@ import pickle
 
 from app.celery import celery
 from app.db import scoped_loop, scoped_session
-from app.dependencies import menu_service
+from app.dependencies import menu_nested_service
+from app.menu.schemas import MenuNestedResponse
 
 
-async def all_data_report_process():
+async def all_data_report_process() -> list[MenuNestedResponse]:
     async with scoped_session() as session:
-        service = menu_service()
-        result = await service.scalar_list(session)
-        return result
+        return await menu_nested_service().list(session, scalar=True)
 
 
 @celery.task()

@@ -31,6 +31,7 @@ async def all_data_report_retrieve(task_id: str) -> list[MenuNestedResponse]:
     '/all/',
     tags=[DATA_PROCESSING_TAG],
     status_code=HTTPStatus.CREATED,
+    response_model=AllDataReportTaskCreated,
 )
 async def all_data_report_create() -> AllDataReportTaskCreated:
     task = all_data_report_process_task.delay()

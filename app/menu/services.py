@@ -25,15 +25,10 @@ class MenuService(AbstractCRUDService, Generic[MenuResponseType]):
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return menu
 
-    async def scalar_list(
-            self, session: AsyncSession
-    ) -> list[MenuResponseType]:
-        return await self.repository.scalar_all(session)
-
     async def list(
-        self, session: AsyncSession
+        self, session: AsyncSession, scalar: bool = False
     ) -> list[MenuResponseType]:
-        return await self.repository.all(session)
+        return await self.repository.all(session, scalar)
 
     async def create(
         self, menu: Menu, session: AsyncSession
@@ -66,11 +61,11 @@ class CachedMenuService(MenuService[MenuResponseType]):
         return menu
 
     async def list(
-        self, session: AsyncSession
+        self, session: AsyncSession, scalar: bool = False
     ) -> list[MenuResponseType]:
         menus = await get_cached_data_or_set_new(
             key=MENUS_CACHE_KEY,
-            callback=lambda: super(CachedMenuService, self).list(session),
+            callback=lambda: super(CachedMenuService, self).list(session, scalar),
             expiration=MENUS_CACHE_TIME,
         )
         return menus

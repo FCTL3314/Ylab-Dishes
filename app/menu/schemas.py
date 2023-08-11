@@ -17,4 +17,4 @@ class MenuResponse(MenuBase):
 
 
 class MenuNestedResponse(MenuBase):
-    submenus_list: list[SubmenuNestedResponse] = []
+    submenus: list[SubmenuNestedResponse] = []

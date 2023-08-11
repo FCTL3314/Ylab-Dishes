@@ -31,13 +31,9 @@ class SubmenuRepository(AbstractCRUDRepository):
         result = await session.execute(stmt)
         return result.first()
 
-    async def all(self, menu_id: UUID, session: AsyncSession) -> list[Row]:
+    async def all(self, menu_id: UUID, session: AsyncSession, scalar: bool = False) -> list[Row]:
         result = await session.execute(self.get_base_query(menu_id))
-        return result.all()
-
-    async def scalar_all(self, menu_id: UUID, session: AsyncSession) -> list[Row]:
-        result = await session.execute(self.get_base_query(menu_id))
-        return result.scalars().all()
+        return result.scalars().all() if scalar else result.all()
 
     async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession) -> Row | None:
         menu.submenus.append(submenu)

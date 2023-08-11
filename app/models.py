@@ -19,10 +19,6 @@ class Menu(MenuBase, table=True):  # type: ignore
         back_populates='menu',
     )
 
-    @property
-    def submenus_list(self):
-        return self.submenus
-
 
 class Submenu(SubmenuBase, table=True):  # type: ignore
     id: UUID = Field(default_factory=uuid4, primary_key=True)
@@ -36,10 +32,6 @@ class Submenu(SubmenuBase, table=True):  # type: ignore
         },
         back_populates='submenu',
     )
-
-    @property
-    def dishes_list(self):
-        return self.dishes
 
 
 class Dish(DishBase, table=True):
