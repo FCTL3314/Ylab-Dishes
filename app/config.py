@@ -8,6 +8,8 @@ load_dotenv()
 class Config:
     DEBUG = bool(os.environ.get('DEBUG'))
 
+    ADMIN_FILE_PATH = os.environ.get('ADMIN_FILE_PATH')
+
     DISH_PRICE_ROUNDING = os.environ.get('DISH_PRICE_ROUNDING')
 
     DATABASE_NAME = os.environ.get('DATABASE_NAME')

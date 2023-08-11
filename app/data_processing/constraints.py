@@ -1,1 +1,1 @@
-DATA_PROCESSING_TAG = 'data-processing'
+DATA_PROCESSING_TAG = 'Data processing'
