@@ -27,6 +27,16 @@ services:
     depends_on:
       - rabbitmq
 
+  celery-beat:
+    build:
+      context: ../../
+      dockerfile: docker/local/Dockerfile
+    volumes:
+      - ../../:/opt/YlabDishes/
+    entrypoint: docker/local/celery_beat_entrypoint.sh
+    depends_on:
+      - rabbitmq
+
   web:
     build:
       context: ../../
@@ -40,3 +50,4 @@ services:
       - db
       - redis
       - celery
+      - celery-beat

@@ -18,3 +18,4 @@ services:
       - test_db
       - redis
       - celery
+      - celery-beat
