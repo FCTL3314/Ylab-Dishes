@@ -13,6 +13,7 @@ from app.config import Config
 from app.data_processing.schemas import TaskCreated
 from app.db import async_session_maker
 from app.models import Dish, Menu, Submenu
+from app.utils import is_valid_uuid
 
 TASK_NOT_FOUND_MESSAGE = 'Task not found or still being processing.'
 
@@ -36,56 +37,61 @@ class AllMenusService(AbstractBackgroundService, Generic[TaskResultType]):
         return TaskCreated(task_id=task.id)
 
 
-class AdminFileService:
+class AdminFileObjectCreationService:
     Action = namedtuple('Action', ('is_menu', 'is_submenu', 'is_dish'))
 
     def __init__(self):
-        self.last_menu: Menu = ...
-        self.last_submenu: Submenu = ...
+        self._last_menu: Menu = ...
+        self._last_submenu: Submenu = ...
 
-        self.menu_action = self.Action(True, False, False)
-        self.submenu_action = self.Action(False, True, False)
-        self.dish_action = self.Action(False, False, True)
+        self._menu_action = self.Action(True, False, False)
+        self._submenu_action = self.Action(False, True, False)
+        self._dish_action = self.Action(False, False, True)
 
     async def create_missing_objects(self) -> None:
         workbook = load_workbook(Config.ADMIN_FILE_PATH, data_only=True)
         worksheet = workbook.active
 
         actions = {
-            self.menu_action: self.handle_menu,
-            self.submenu_action: self.handle_submenu,
-            self.dish_action: self.handle_dish,
+            self._menu_action: self._handle_menu,
+            self._submenu_action: self._handle_submenu,
+            self._dish_action: self._handle_dish,
         }
 
         async with async_session_maker() as session:
             for row in worksheet.iter_rows(values_only=True):
-                action = self.get_action(row)
+                action = self._get_action(row)
 
-                await actions[action](row, session)
+                if self._is_action_valid(action):
+
+                    await actions[action](row, session)
 
             await session.commit()
 
-    def get_action(self, row: tuple) -> Action:
-        is_menu = isinstance(row[0], int)
-        is_submenu = isinstance(row[1], int)
-        is_dish = isinstance(row[2], int)
+    def _get_action(self, row: tuple) -> Action:
+        is_menu = is_valid_uuid(row[0])
+        is_submenu = is_valid_uuid(row[1])
+        is_dish = is_valid_uuid(row[2])
         return self.Action(is_menu, is_submenu, is_dish)
 
-    async def handle_menu(self, row: tuple, session: AsyncSession) -> None:
-        title, description = row[1], row[2]
-        menu = Menu(title=title, description=description)
+    def _is_action_valid(self, action):
+        return action in (self._menu_action, self._submenu_action, self._dish_action)
+
+    async def _handle_menu(self, row: tuple, session: AsyncSession) -> None:
+        menu_id, title, description = row[0], row[1], row[2]
+        menu = Menu(id=menu_id, title=title, description=description)
         session.add(menu)
-        self.last_menu = menu
+        self._last_menu = menu
 
-    async def handle_submenu(self, row: tuple, session: AsyncSession) -> None:
-        title, description = row[2], row[3]
-        submenu = Submenu(title=title, description=description)
-        self.last_menu.submenus.append(submenu)
+    async def _handle_submenu(self, row: tuple, session: AsyncSession) -> None:
+        submenu_id, title, description = row[1], row[2], row[3]
+        submenu = Submenu(id=submenu_id, title=title, description=description)
+        self._last_menu.submenus.append(submenu)
         session.add(submenu)
-        self.last_submenu = submenu
+        self._last_submenu = submenu
 
-    async def handle_dish(self, row: tuple, session: AsyncSession) -> None:
-        title, description, price = row[3], row[4], row[5]
-        dish = Dish(title=title, description=description, price=price)
-        self.last_submenu.dishes.append(dish)
+    async def _handle_dish(self, row: tuple, session: AsyncSession) -> None:
+        dish_id, title, description, price = row[2], row[3], row[4], row[5]
+        dish = Dish(id=dish_id, title=title, description=description, price=price)
+        self._last_submenu.dishes.append(dish)
         session.add(dish)
