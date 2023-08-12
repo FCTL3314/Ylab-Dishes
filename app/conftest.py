@@ -3,7 +3,7 @@ from typing import AsyncGenerator, Generator
 
 import pytest
 from httpx import AsyncClient
-from mixer.auto import mixer  # type: ignore
+from mixer.auto import mixer
 from sqlalchemy.engine import Row
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker

@@ -1,6 +1,7 @@
 import pickle
 
 from app.celery import celery
+from app.data_processing.dependencies.admin import AdminDependencies
 from app.db import scoped_loop, scoped_session
 from app.menu.dependencies import menu_nested_service
 from app.menu.schemas import MenuNestedResponse
@@ -17,6 +18,11 @@ def all_menus_task():
     return pickle.dumps(result)
 
 
+async def database_synchronization_process() -> None:
+    async with scoped_session() as session:
+        await AdminDependencies.admin_service.handle(session)  # type: ignore
+
+
 @celery.task
 def database_synchronization():
-    print('Not implemented...')
+    scoped_loop.run_until_complete(database_synchronization_process())

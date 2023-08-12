@@ -48,3 +48,4 @@ repos:
     hooks:
     -   id: mypy
         exclude: 'migrations'
+        args: ['--ignore-missing-imports']

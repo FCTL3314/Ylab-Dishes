@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from celery.local import PromiseProxy  # type: ignore
+from celery.local import PromiseProxy
 
 from app.common.repository import AbstractCRUDRepository
 
