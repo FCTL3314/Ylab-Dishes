@@ -171,7 +171,8 @@ class AdminDishService(BaseAdminService, Generic[AdminServicesRepositoryType]):
             self.last_menu_id,
             self.last_submenu_id,
             dish_id,
-            session, orm_object=True,
+            session,
+            orm_object=True,
         )
         if dish is None:
             await self._create_dish(row, session)

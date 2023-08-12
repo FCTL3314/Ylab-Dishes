@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.get(
     '/all/{task_id}/',
+    name='all-menus:list',
     tags=[DATA_PROCESSING_TAG],
     response_model=list[MenuNestedResponse],
 )
@@ -25,6 +26,7 @@ async def menus_with_attachments_list(
 
 @router.post(
     '/all/',
+    name='all-menus:create-task',
     tags=[DATA_PROCESSING_TAG],
     status_code=HTTPStatus.CREATED,
     response_model=TaskCreated,
