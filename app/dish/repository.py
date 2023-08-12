@@ -44,9 +44,7 @@ class DishRepository(AbstractCRUDRepository):
             )
         )
         result = await session.execute(stmt)
-        if first := result.first():
-            return first[0] if orm_object else first
-        return None
+        return result.scalars().first() if orm_object else result.first()
 
     async def get(
         self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession

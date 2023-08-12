@@ -18,9 +18,7 @@ class MenuRepository(AbstractCRUDRepository):
     ) -> Row | MenuBase | None:
         stmt = select(Menu).where(Menu.id == menu_id)
         result = await session.execute(stmt)
-        if first := result.first():
-            return first[0] if orm_object else first
-        return None
+        return result.scalars().first() if orm_object else result.first()
 
     async def get(self, menu_id: UUID, session: AsyncSession) -> Row | None:
         stmt = self.base_query.where(Menu.id == menu_id)

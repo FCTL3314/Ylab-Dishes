@@ -15,3 +15,8 @@ async def get_all_menus() -> list[MenuNestedResponse]:
 def all_menus_task():
     result = scoped_loop.run_until_complete(get_all_menus())
     return pickle.dumps(result)
+
+
+@celery.task
+def database_synchronization():
+    print('Not implemented...')
