@@ -6,10 +6,10 @@ from app.data_processing.constraints import DATA_PROCESSING_TAG
 from app.data_processing.dependencies import ActiveAllMenusService
 from app.data_processing.schemas import TaskCreated
 from app.data_processing.services.admin_file import (
-    AdminFileDishUpdatingService,
-    AdminFileMenuUpdatingService,
+    AdminDishUpdatingService,
     AdminFileService,
-    AdminFileSubmenuUpdatingService,
+    AdminMenuUpdatingService,
+    AdminSubmenuUpdatingService,
 )
 from app.data_processing.services.all_menus import AllMenusService
 from app.dish.repository import DishRepository
@@ -52,8 +52,8 @@ async def menus_with_attachments_task_create(
 async def test():
     return await AdminFileService(
         [
-            AdminFileMenuUpdatingService[MenuRepository](MenuRepository()),
-            AdminFileSubmenuUpdatingService[SubmenuRepository](SubmenuRepository()),
-            AdminFileDishUpdatingService[DishRepository](DishRepository()),
+            AdminMenuUpdatingService[MenuRepository](MenuRepository()),
+            AdminSubmenuUpdatingService[SubmenuRepository](SubmenuRepository()),
+            AdminDishUpdatingService[DishRepository](DishRepository()),
         ]
     ).handle()
