@@ -12,13 +12,7 @@ class DishRepository(AbstractCRUDRepository):
     @staticmethod
     def get_base_query(menu_id: UUID, submenu_id: UUID):
         return (
-            select(
-                Dish.id,
-                Dish.title,
-                Dish.description,
-                Dish.price,
-                Dish.submenu_id,
-            )
+            select(Dish)
             .join(Submenu, Dish.submenu_id == Submenu.id)
             .where(
                 Dish.submenu_id == submenu_id,
@@ -47,11 +41,11 @@ class DishRepository(AbstractCRUDRepository):
         return result.scalars().first() if orm_object else result.first()
 
     async def get(
-        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession, scalar: bool = False
     ) -> Row | None:
         stmt = self.get_base_query(menu_id, submenu_id).where(Dish.id == dish_id)
         result = await session.execute(stmt)
-        return result.first()
+        return result.scalars().first() if scalar else result.first()
 
     async def all(
         self, menu_id: UUID, submenu_id: UUID, session: AsyncSession, scalar: bool = False

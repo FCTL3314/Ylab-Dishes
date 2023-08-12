@@ -11,32 +11,51 @@ from app.models import Dish, Menu, Submenu
 from app.utils import is_valid_uuid
 
 
-class AbstractAdminUpdatingService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
+class BaseAdminService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
+    visited_ids: set[str] = set()
+
     def __init__(self, repository: AdminServicesRepositoryType):
         self.repository = repository
 
+    async def update(self, session: AsyncSession):
+        await self._create_missing_objects(session)
+        await self._delete_irrelevant_objects(session)
+        await session.commit()
+
     @abstractmethod
-    def create_missing_objects(self, session: AsyncSession):
+    def _create_missing_objects(self, session: AsyncSession):
+        ...
+
+    @abstractmethod
+    def _delete_irrelevant_objects(self, session: AsyncSession):
         ...
 
 
-class AdminMenuUpdatingService(AbstractAdminUpdatingService, Generic[AdminServicesRepositoryType]):
+class AdminMenuService(BaseAdminService, Generic[AdminServicesRepositoryType]):
     id_index = 0
     title_index = 1
     description_index = 2
 
-    async def create_missing_objects(self, session: AsyncSession):
+    async def _create_missing_objects(self, session: AsyncSession):
         for row in self.worksheet.iter_rows(values_only=True):
             if self.is_menu_row(row):
                 await self._handle(row, session)
-        await session.commit()
+
+    async def _delete_irrelevant_objects(self, session: AsyncSession):
+        menus = await self.repository.all(session, scalar=True)
+        for menu in menus:
+            if str(menu.id) not in self.visited_ids:
+                await self.repository.delete(menu, session, commit=False)
+        self.visited_ids = set()
 
     @classmethod
     def is_menu_row(cls, row: tuple):
         return is_valid_uuid(row[cls.id_index])
 
     async def _handle(self, row: tuple, session: AsyncSession):
-        menu = await self.repository.get_by_id(row[self.id_index], session, orm_object=True)
+        menu_id = row[self.id_index]
+        self.visited_ids.add(menu_id)
+        menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         if menu is None:
             await self._create_menu(row, session)
         else:
@@ -58,27 +77,36 @@ class AdminMenuUpdatingService(AbstractAdminUpdatingService, Generic[AdminServic
         await self.repository.update(menu, updated_menu, session, commit=False)
 
 
-class AdminSubmenuUpdatingService(AbstractAdminUpdatingService, Generic[AdminServicesRepositoryType]):
+class AdminSubmenuService(BaseAdminService, Generic[AdminServicesRepositoryType]):
     id_index = 1
     title_index = 2
     description_index = 3
 
     last_menu_id: str = ''
 
-    async def create_missing_objects(self, session: AsyncSession):
+    async def _create_missing_objects(self, session: AsyncSession):
         for row in self.worksheet.iter_rows(values_only=True):
-            if AdminMenuUpdatingService.is_menu_row(row):
-                self.last_menu_id = row[AdminMenuUpdatingService.id_index]
+            if AdminMenuService.is_menu_row(row):
+                self.last_menu_id = row[AdminMenuService.id_index]
             elif self.is_submenu_row(row):
                 await self._handle(row, session)
         await session.commit()
+
+    async def _delete_irrelevant_objects(self, session: AsyncSession):
+        submenus = await self.repository.all(self.last_menu_id, session, scalar=True)
+        for submenu in submenus:
+            if str(submenu.id) not in self.visited_ids:
+                await self.repository.delete(submenu, session, commit=False)
+        self.visited_ids = set()
 
     @classmethod
     def is_submenu_row(cls, row: tuple):
         return is_valid_uuid(row[cls.id_index])
 
     async def _handle(self, row: tuple, session: AsyncSession):
-        submenu = await self.repository.get_by_id(self.last_menu_id, row[self.id_index], session, orm_object=True)
+        submenu_id = row[self.id_index]
+        self.visited_ids.add(submenu_id)
+        submenu = await self.repository.get_by_id(self.last_menu_id, submenu_id, session, orm_object=True)
         if submenu is None:
             await self._create_submenu(row, session)
         else:
@@ -101,7 +129,7 @@ class AdminSubmenuUpdatingService(AbstractAdminUpdatingService, Generic[AdminSer
         await self.repository.update(submenu, updated_submenu, session, commit=False)
 
 
-class AdminDishUpdatingService(AbstractAdminUpdatingService, Generic[AdminServicesRepositoryType]):
+class AdminDishService(BaseAdminService, Generic[AdminServicesRepositoryType]):
     id_index = 2
     title_index = 3
     description_index = 4
@@ -110,25 +138,39 @@ class AdminDishUpdatingService(AbstractAdminUpdatingService, Generic[AdminServic
     last_menu_id: str = ''
     last_submenu_id: str = ''
 
-    async def create_missing_objects(self, session: AsyncSession):
+    async def _create_missing_objects(self, session: AsyncSession):
         for row in self.worksheet.iter_rows(values_only=True):
-            if AdminMenuUpdatingService.is_menu_row(row):
-                self.last_menu_id = row[AdminMenuUpdatingService.id_index]
-            elif AdminSubmenuUpdatingService.is_submenu_row(row):
-                self.last_submenu_id = row[AdminSubmenuUpdatingService.id_index]
+            if AdminMenuService.is_menu_row(row):
+                self.last_menu_id = row[AdminMenuService.id_index]
+            elif AdminSubmenuService.is_submenu_row(row):
+                self.last_submenu_id = row[AdminSubmenuService.id_index]
             elif self.is_dish_row(row):
                 await self._handle(row, session)
         await session.commit()
+
+    async def _delete_irrelevant_objects(self, session: AsyncSession):
+        dishes = await self.repository.all(
+            self.last_menu_id,
+            self.last_submenu_id,
+            session,
+            scalar=True,
+        )
+        for dish in dishes:
+            if str(dish.id) not in self.visited_ids:
+                await self.repository.delete(dish, session, commit=False)
+        self.visited_ids = set()
 
     @classmethod
     def is_dish_row(cls, row: tuple):
         return is_valid_uuid(row[cls.id_index])
 
     async def _handle(self, row: tuple, session: AsyncSession):
+        dish_id = row[self.id_index]
+        self.visited_ids.add(dish_id)
         dish = await self.repository.get_by_id(
             self.last_menu_id,
             self.last_submenu_id,
-            row[self.id_index],
+            dish_id,
             session, orm_object=True,
         )
         if dish is None:

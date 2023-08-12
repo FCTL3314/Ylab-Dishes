@@ -3,9 +3,9 @@ from fastapi import Depends
 
 from app.data_processing.services.admin.admin_service import AdminFileService
 from app.data_processing.services.admin.updating_services import (
-    AdminDishUpdatingService,
-    AdminMenuUpdatingService,
-    AdminSubmenuUpdatingService,
+    AdminDishService,
+    AdminMenuService,
+    AdminSubmenuService,
 )
 from app.data_processing.services.all_menus import AllMenusService
 from app.data_processing.tasks import all_menus_task
@@ -25,7 +25,7 @@ ActiveAllMenusService = Depends(all_menus_service)
 class AdminFileDependencies(Injector):
     admin_file_service = AdminFileService
     updating_services = [
-        AdminMenuUpdatingService[MenuRepository](MenuRepository()),
-        AdminSubmenuUpdatingService[SubmenuRepository](SubmenuRepository()),
-        AdminDishUpdatingService[DishRepository](DishRepository()),
+        AdminMenuService[MenuRepository](MenuRepository()),
+        AdminSubmenuService[SubmenuRepository](SubmenuRepository()),
+        AdminDishService[DishRepository](DishRepository()),
     ]

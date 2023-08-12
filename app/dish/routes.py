@@ -28,7 +28,7 @@ async def dish_retrieve(
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
-    response = await dish_service.retrieve(menu_id, submenu_id, dish_id, session)
+    response = await dish_service.retrieve(menu_id, submenu_id, dish_id, session, scalar=True)
     return response
 
 
@@ -44,7 +44,7 @@ async def dish_list(
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> list[Dish]:
-    response = await dish_service.list(menu_id, submenu_id, session)
+    response = await dish_service.list(menu_id, submenu_id, session, scalar=True)
     return response
 
 

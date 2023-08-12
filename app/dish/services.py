@@ -21,16 +21,16 @@ DishResponseType = TypeVar('DishResponseType', bound=DishBase)
 
 class DishService(AbstractCRUDService, Generic[DishResponseType]):
     async def retrieve(
-        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession, scalar: bool = False
     ) -> DishResponseType:
-        dish = await self.repository.get(menu_id, submenu_id, dish_id, session)
+        dish = await self.repository.get(menu_id, submenu_id, dish_id, session, scalar)
         is_obj_exists_or_404(dish, DISH_NOT_FOUND_MESSAGE)
         return dish
 
     async def list(
-        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession, scalar: bool = False
     ) -> list[DishResponseType]:
-        return await self.repository.all(menu_id, submenu_id, session)
+        return await self.repository.all(menu_id, submenu_id, session, scalar)
 
     async def create(
         self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
@@ -68,12 +68,12 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
 
 class CachedDishService(DishService[DishResponseType]):
     async def retrieve(
-        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession, scalar: bool = False
     ) -> DishResponseType:
         dish = await get_cached_data_or_set_new(
             DISH_CACHE_TEMPLATE.format(id=dish_id),
             lambda: super(CachedDishService, self).retrieve(
-                menu_id, submenu_id, dish_id, session
+                menu_id, submenu_id, dish_id, session, scalar
             ),
             DISHES_CACHE_TIME,
         )
@@ -81,11 +81,11 @@ class CachedDishService(DishService[DishResponseType]):
         return dish
 
     async def list(
-        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession, scalar: bool = False
     ) -> list[DishResponseType]:
         dishes = await get_cached_data_or_set_new(
             DISHES_CACHE_KEY,
-            lambda: super(CachedDishService, self).list(menu_id, submenu_id, session),
+            lambda: super(CachedDishService, self).list(menu_id, submenu_id, session, scalar),
             DISHES_CACHE_TIME,
         )
         return dishes
