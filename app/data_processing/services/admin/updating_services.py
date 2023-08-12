@@ -1,24 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic
 
-from openpyxl import load_workbook  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.repository import AbstractRepository
-from app.config import Config
-from app.db import async_session_maker
+from app.data_processing.services.admin import (
+    AdminServicesRepositoryType,
+    AdminWorksheetMixin,
+)
 from app.models import Dish, Menu, Submenu
 from app.utils import is_valid_uuid
-
-
-class AdminWorksheetMixin:
-    @property
-    def worksheet(self):
-        workbook = load_workbook(Config.ADMIN_FILE_PATH, data_only=True)
-        return workbook.active
-
-
-AdminServicesRepositoryType = TypeVar('AdminServicesRepositoryType', bound=AbstractRepository)
 
 
 class AbstractAdminUpdatingService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
@@ -28,33 +18,6 @@ class AbstractAdminUpdatingService(AdminWorksheetMixin, ABC, Generic[AdminServic
     @abstractmethod
     def create_missing_objects(self, session: AsyncSession):
         ...
-
-
-class AbstractAdminDeletingService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
-    def __init__(self, repository: AdminServicesRepositoryType):
-        self.repository = repository
-
-    @abstractmethod
-    def delete_redundant_objects(self, session: AsyncSession):
-        ...
-
-
-class AdminFileService:
-
-    def __init__(
-            self,
-            updating_service: list[AbstractAdminUpdatingService],
-            # deletion_service: list[AbstractAdminFileDeletingService],
-    ):
-        self.updating_services = updating_service
-        # self.deletion_services = deletion_service
-
-    async def handle(self):
-        async with async_session_maker() as session:
-            for updating_service in self.updating_services:
-                await updating_service.create_missing_objects(session)
-            # for deletion_service in self.deletion_services:
-            #     deletion_service.delete_redundant_objects()
 
 
 class AdminMenuUpdatingService(AbstractAdminUpdatingService, Generic[AdminServicesRepositoryType]):
