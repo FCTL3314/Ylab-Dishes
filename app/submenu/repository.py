@@ -35,11 +35,12 @@ class SubmenuRepository(AbstractCRUDRepository):
         result = await session.execute(self.get_base_query(menu_id))
         return result.scalars().all() if scalar else result.all()
 
-    async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession) -> Row | None:
+    async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession, commit: bool = True) -> Row | None:
         menu.submenus.append(submenu)
         session.add(submenu)
-        await session.commit()
-        await session.refresh(submenu)
+        if commit is True:
+            await session.commit()
+            await session.refresh(submenu)
         return await self.get(submenu.menu_id, submenu.id, session)
 
     async def update(
@@ -47,17 +48,20 @@ class SubmenuRepository(AbstractCRUDRepository):
         submenu: Submenu,
         updated_submenu: Submenu,
         session: AsyncSession,
+        commit: bool = True,
     ) -> Row:
         updated_submenu_dict = updated_submenu.dict(exclude_unset=True)
         for key, val in updated_submenu_dict.items():
             setattr(submenu, key, val)
 
-        await session.commit()
-        await session.refresh(submenu)
+        if commit is True:
+            await session.commit()
+            await session.refresh(submenu)
         return await self.get(submenu.menu_id, submenu.id, session)  # type: ignore
 
-    async def delete(self, submenu: Submenu, session: AsyncSession) -> None:
-        await session.delete(submenu)
+    async def delete(self, submenu: Submenu, session: AsyncSession, commit: bool = True) -> None:
+        if commit is True:
+            await session.delete(submenu)
         await session.commit()
 
 

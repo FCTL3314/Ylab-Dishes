@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from app.data_processing.services import AllMenusService
+from app.data_processing.services.all_menus import AllMenusService
 from app.data_processing.tasks import all_menus_task
 from app.menu.schemas import MenuNestedResponse
 

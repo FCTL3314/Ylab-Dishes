@@ -31,27 +31,30 @@ class MenuRepository(AbstractCRUDRepository):
         result = await session.execute(self.base_query)
         return result.scalars().all() if scalar else result.all()
 
-    async def create(self, menu: Menu, session: AsyncSession) -> Row | None:
+    async def create(self, menu: Menu, session: AsyncSession, commit: bool = True) -> Row | None:
         session.add(menu)
-        await session.commit()
-        await session.refresh(menu)
+        if commit is True:
+            await session.commit()
+            await session.refresh(menu)
         return await self.get(menu.id, session)
 
     async def update(
-        self, menu: Menu, updated_menu: Menu, session: AsyncSession
+        self, menu: Menu, updated_menu: Menu, session: AsyncSession, commit: bool = True
     ) -> Row | None:
         updated_menu_dict = updated_menu.dict(exclude_unset=True)
 
         for key, val in updated_menu_dict.items():
             setattr(menu, key, val)
 
-        await session.commit()
-        await session.refresh(menu)
+        if commit is True:
+            await session.commit()
+            await session.refresh(menu)
         return await self.get(menu.id, session)
 
-    async def delete(self, menu: Menu, session: AsyncSession) -> None:
+    async def delete(self, menu: Menu, session: AsyncSession, commit: bool = True) -> None:
         await session.delete(menu)
-        await session.commit()
+        if commit is True:
+            await session.commit()
 
 
 class MenuWithCountingRepository(MenuRepository):

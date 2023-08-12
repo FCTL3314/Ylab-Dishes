@@ -62,25 +62,28 @@ class DishRepository(AbstractCRUDRepository):
         return result.scalars().all() if scalar else result.all()
 
     @staticmethod
-    async def create(submenu: Submenu, dish: Dish, session: AsyncSession) -> Dish:
+    async def create(submenu: Submenu, dish: Dish, session: AsyncSession, commit: bool = True) -> Dish:
         submenu.dishes.append(dish)
         session.add(dish)
-        await session.commit()
-        await session.refresh(dish)
+        if commit is True:
+            await session.commit()
+            await session.refresh(dish)
         return dish
 
     @staticmethod
-    async def update(dish: Dish, updated_dish: Dish, session: AsyncSession) -> Dish:
+    async def update(dish: Dish, updated_dish: Dish, session: AsyncSession, commit: bool = True) -> Dish:
         updated_dish_dict = updated_dish.dict(exclude_unset=True)
 
         for key, val in updated_dish_dict.items():
             setattr(dish, key, val)
 
-        await session.commit()
-        await session.refresh(dish)
+        if commit is True:
+            await session.commit()
+            await session.refresh(dish)
         return dish
 
     @staticmethod
-    async def delete(dish: Dish, session: AsyncSession) -> None:
-        await session.delete(dish)
+    async def delete(dish: Dish, session: AsyncSession, commit: bool = True) -> None:
+        if commit is True:
+            await session.delete(dish)
         await session.commit()
