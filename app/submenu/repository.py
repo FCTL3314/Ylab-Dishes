@@ -35,8 +35,13 @@ class SubmenuRepository(AbstractCRUDRepository):
         result = await session.execute(self.get_base_query(menu_id))
         return result.scalars().all() if scalar else result.all()
 
-    async def create(self, menu: Menu, submenu: Submenu, session: AsyncSession, commit: bool = True) -> Row | None:
-        menu.submenus.append(submenu)
+    async def create(self, menu_id: UUID, submenu: Submenu, session: AsyncSession, commit: bool = True) -> Row | None:
+        submenu = Submenu(
+            id=submenu.id,
+            title=submenu.title,
+            description=submenu.description,
+            menu_id=menu_id
+        )
         session.add(submenu)
         if commit is True:
             await session.commit()

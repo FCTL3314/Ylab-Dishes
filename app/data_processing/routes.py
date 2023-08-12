@@ -12,7 +12,10 @@ from app.data_processing.services.admin_file import (
     AdminFileSubmenuUpdatingService,
 )
 from app.data_processing.services.all_menus import AllMenusService
+from app.dish.repository import DishRepository
+from app.menu.repository import MenuRepository
 from app.menu.schemas import MenuNestedResponse
+from app.submenu.repository import SubmenuRepository
 
 router = APIRouter()
 
@@ -49,8 +52,8 @@ async def menus_with_attachments_task_create(
 async def test():
     return await AdminFileService(
         [
-            AdminFileMenuUpdatingService(),
-            AdminFileSubmenuUpdatingService(),
-            AdminFileDishUpdatingService(),
+            AdminFileMenuUpdatingService[MenuRepository](MenuRepository()),
+            AdminFileSubmenuUpdatingService[SubmenuRepository](SubmenuRepository()),
+            AdminFileDishUpdatingService[DishRepository](DishRepository()),
         ]
     ).handle()

@@ -39,7 +39,7 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
             menu_id, submenu_id, session, orm_object=True
         )
         is_obj_exists_or_404(submenu, SUBMENU_NOT_FOUND_MESSAGE)
-        return await self.repository.create(submenu, dish, session)
+        return await self.repository.create(submenu.id, dish, session)  # type: ignore
 
     async def update(
         self,

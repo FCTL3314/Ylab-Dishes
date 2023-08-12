@@ -41,7 +41,7 @@ class SubmenuService(AbstractCRUDService, Generic[SubmenuResponseType]):
     ) -> SubmenuResponseType:
         menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
-        return await self.repository.create(menu, submenu, session)
+        return await self.repository.create(menu.id, submenu, session)  # type:ignore
 
     async def update(
         self,

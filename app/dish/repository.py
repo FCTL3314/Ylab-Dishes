@@ -62,8 +62,14 @@ class DishRepository(AbstractCRUDRepository):
         return result.scalars().all() if scalar else result.all()
 
     @staticmethod
-    async def create(submenu: Submenu, dish: Dish, session: AsyncSession, commit: bool = True) -> Dish:
-        submenu.dishes.append(dish)
+    async def create(submenu_id: UUID, dish: Dish, session: AsyncSession, commit: bool = True) -> Dish:
+        dish = Dish(
+            id=dish.id,
+            title=dish.title,
+            description=dish.description,
+            price=dish.price,
+            submenu_id=submenu_id,
+        )
         session.add(dish)
         if commit is True:
             await session.commit()
