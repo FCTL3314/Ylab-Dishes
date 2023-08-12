@@ -3,19 +3,13 @@ from http import HTTPStatus
 from fastapi import APIRouter
 
 from app.data_processing.constraints import DATA_PROCESSING_TAG
-from app.data_processing.dependencies import ActiveAllMenusService
-from app.data_processing.schemas import TaskCreated
-from app.data_processing.services.admin_file import (
-    AdminDishUpdatingService,
-    AdminFileService,
-    AdminMenuUpdatingService,
-    AdminSubmenuUpdatingService,
+from app.data_processing.dependencies import (
+    ActiveAllMenusService,
+    AdminFileDependencies,
 )
+from app.data_processing.schemas import TaskCreated
 from app.data_processing.services.all_menus import AllMenusService
-from app.dish.repository import DishRepository
-from app.menu.repository import MenuRepository
 from app.menu.schemas import MenuNestedResponse
-from app.submenu.repository import SubmenuRepository
 
 router = APIRouter()
 
@@ -50,10 +44,4 @@ async def menus_with_attachments_task_create(
     status_code=HTTPStatus.CREATED,
 )
 async def test():
-    return await AdminFileService(
-        [
-            AdminMenuUpdatingService[MenuRepository](MenuRepository()),
-            AdminSubmenuUpdatingService[SubmenuRepository](SubmenuRepository()),
-            AdminDishUpdatingService[DishRepository](DishRepository()),
-        ]
-    ).handle()
+    return await AdminFileDependencies.admin_file_service.handle()
