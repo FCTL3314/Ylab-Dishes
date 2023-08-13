@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.dependencies import ActiveSession
@@ -60,10 +60,11 @@ async def dish_create(
     menu_id: UUID,
     submenu_id: UUID,
     dish: Dish,
+    background_tasks: BackgroundTasks,
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
-    response = await dish_service.create(menu_id, submenu_id, dish, session)
+    response = await dish_service.create(menu_id, submenu_id, dish, background_tasks, session)
     return response
 
 
@@ -79,11 +80,12 @@ async def dish_patch(
     submenu_id: UUID,
     dish_id: UUID,
     updated_dish: Dish,
+    background_tasks: BackgroundTasks,
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> Dish:
     response = await dish_service.update(
-        menu_id, submenu_id, dish_id, updated_dish, session
+        menu_id, submenu_id, dish_id, updated_dish, background_tasks, session
     )
     return response
 
@@ -99,8 +101,9 @@ async def dish_delete(
     menu_id: UUID,
     submenu_id: UUID,
     dish_id: UUID,
+    background_tasks: BackgroundTasks,
     dish_service: CachedDishService = ActiveCachedDishService,
     session: AsyncSession = ActiveSession,
 ) -> DeletionResponse:
-    response = await dish_service.delete(menu_id, submenu_id, dish_id, session)
+    response = await dish_service.delete(menu_id, submenu_id, dish_id, background_tasks, session)
     return response

@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.dependencies import ActiveSession
@@ -59,10 +59,11 @@ async def submenu_list(
 async def submenu_create(
     menu_id: UUID,
     submenu: Submenu,
+    background_tasks: BackgroundTasks,
     submenu_service: CachedSubmenuService = ActiveCachedSubmenuService,
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
-    response = await submenu_service.create(menu_id, submenu, session)
+    response = await submenu_service.create(menu_id, submenu, background_tasks, session)
     return response
 
 
@@ -77,11 +78,12 @@ async def submenu_patch(
     menu_id: UUID,
     submenu_id: UUID,
     updated_submenu: Submenu,
+    background_tasks: BackgroundTasks,
     submenu_service: CachedSubmenuService = ActiveCachedSubmenuService,
     session: AsyncSession = ActiveSession,
 ) -> SubmenuResponse:
     response = await submenu_service.update(
-        menu_id, submenu_id, updated_submenu, session
+        menu_id, submenu_id, updated_submenu, background_tasks, session
     )
     return response
 
@@ -96,8 +98,9 @@ async def submenu_patch(
 async def submenu_delete(
     menu_id: UUID,
     submenu_id: UUID,
+    background_tasks: BackgroundTasks,
     submenu_service: CachedSubmenuService = ActiveCachedSubmenuService,
     session: AsyncSession = ActiveSession,
 ) -> DeletionResponse:
-    response = await submenu_service.delete(menu_id, submenu_id, session)
+    response = await submenu_service.delete(menu_id, submenu_id, background_tasks, session)
     return response

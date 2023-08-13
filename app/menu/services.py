@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
@@ -31,18 +32,18 @@ class MenuService(AbstractCRUDService, Generic[MenuResponseType]):
         return await self.repository.all(session, scalar)
 
     async def create(
-        self, menu: Menu, session: AsyncSession
+        self, menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
         return await self.repository.create(menu, session)
 
     async def update(
-        self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
+        self, menu_id: UUID, updated_menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         return await self.repository.update(menu, updated_menu, session)
 
-    async def delete(self, menu_id: UUID, session: AsyncSession) -> DeletionResponse:
+    async def delete(self, menu_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession) -> DeletionResponse:
         menu = await self.repository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
         await self.repository.delete(menu, session)
@@ -71,22 +72,22 @@ class CachedMenuService(MenuService[MenuResponseType]):
         return menus
 
     async def create(
-        self, menu: Menu, session: AsyncSession
+        self, menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
-        _menu = await super().create(menu, session)
-        await CachedMenuService.clear_list_cache()
+        _menu = await super().create(menu, background_tasks, session)
+        background_tasks.add_task(CachedMenuService.clear_list_cache)
         return _menu
 
     async def update(
-        self, menu_id: UUID, updated_menu: Menu, session: AsyncSession
+        self, menu_id: UUID, updated_menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
-        _updated_menu = await super().update(menu_id, updated_menu, session)
-        await CachedMenuService.clear_cache(menu_id)
+        _updated_menu = await super().update(menu_id, updated_menu, background_tasks, session)
+        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
         return _updated_menu
 
-    async def delete(self, menu_id: UUID, session: AsyncSession) -> DeletionResponse:
-        response = await super().delete(menu_id, session)
-        await CachedMenuService.clear_cache(menu_id)
+    async def delete(self, menu_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession) -> DeletionResponse:
+        response = await super().delete(menu_id, background_tasks, session)
+        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
         return response
 
     @staticmethod

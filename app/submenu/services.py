@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
@@ -37,7 +38,7 @@ class SubmenuService(AbstractCRUDService, Generic[SubmenuResponseType]):
         return await self.repository.all(menu_id, session)
 
     async def create(
-        self, menu_id: UUID, submenu: Submenu, session: AsyncSession
+        self, menu_id: UUID, submenu: Submenu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> SubmenuResponseType:
         menu = await MenuRepository.get_by_id(menu_id, session, orm_object=True)
         is_obj_exists_or_404(menu, MENU_NOT_FOUND_MESSAGE)
@@ -48,6 +49,7 @@ class SubmenuService(AbstractCRUDService, Generic[SubmenuResponseType]):
         menu_id: UUID,
         submenu_id: UUID,
         updated_submenu: Submenu,
+        background_tasks: BackgroundTasks,
         session: AsyncSession,
     ) -> SubmenuResponseType:
         submenu = await self.repository.get_by_id(
@@ -57,7 +59,7 @@ class SubmenuService(AbstractCRUDService, Generic[SubmenuResponseType]):
         return await self.repository.update(submenu, updated_submenu, session)
 
     async def delete(
-        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DeletionResponse:
         submenu = await self.repository.get_by_id(
             menu_id, submenu_id, session, orm_object=True
@@ -91,13 +93,13 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         return submenus
 
     async def create(
-        self, menu_id: UUID, submenu: Submenu, session: AsyncSession
+        self, menu_id: UUID, submenu: Submenu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> SubmenuResponseType:
         _submenu = await super().create(
-            menu_id, submenu, session
+            menu_id, submenu, background_tasks, session
         )
-        await CachedSubmenuService.clear_list_cache()
-        await CachedMenuService.clear_cache(menu_id)
+        background_tasks.add_task(CachedSubmenuService.clear_list_cache)
+        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
         return _submenu
 
     async def update(
@@ -105,22 +107,23 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         menu_id: UUID,
         submenu_id: UUID,
         updated_submenu: Submenu,
+        background_tasks: BackgroundTasks,
         session: AsyncSession,
     ) -> SubmenuResponseType:
         _updated_submenu = await super().update(
-            menu_id, submenu_id, updated_submenu, session
+            menu_id, submenu_id, updated_submenu, background_tasks, session
         )
-        await CachedSubmenuService.clear_cache(submenu_id)
+        background_tasks.add_task(CachedSubmenuService.clear_cache, submenu_id)
         return _updated_submenu
 
     async def delete(
-        self, menu_id: UUID, submenu_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DeletionResponse:
         response = await super().delete(
-            menu_id, submenu_id, session
+            menu_id, submenu_id, background_tasks, session
         )
-        await CachedSubmenuService.clear_cache(submenu_id)
-        await CachedMenuService.clear_cache(menu_id)
+        background_tasks.add_task(CachedSubmenuService.clear_cache, submenu_id)
+        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
         return response
 
     @staticmethod

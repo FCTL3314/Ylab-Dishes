@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
@@ -33,7 +34,7 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
         return await self.repository.all(menu_id, submenu_id, session, scalar)
 
     async def create(
-        self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish: Dish, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DishResponseType:
         submenu = await SubmenuRepository.get_by_id(
             menu_id, submenu_id, session, orm_object=True
@@ -47,6 +48,7 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
         submenu_id: UUID,
         dish_id: UUID,
         updated_dish: Dish,
+        background_tasks: BackgroundTasks,
         session: AsyncSession,
     ) -> DishResponseType:
         dish = await self.repository.get_by_id(
@@ -56,7 +58,7 @@ class DishService(AbstractCRUDService, Generic[DishResponseType]):
         return await self.repository.update(dish, updated_dish, session)
 
     async def delete(
-        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DeletionResponse:
         dish = await self.repository.get_by_id(
             menu_id, submenu_id, dish_id, session, orm_object=True
@@ -91,12 +93,12 @@ class CachedDishService(DishService[DishResponseType]):
         return dishes
 
     async def create(
-        self, menu_id: UUID, submenu_id: UUID, dish: Dish, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish: Dish, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DishResponseType:
-        submenu = await super().create(menu_id, submenu_id, dish, session)
-        await CachedDishService.clear_list_cache()
-        await CachedSubmenuService.clear_list_cache()
-        await CachedMenuService.clear_list_cache()
+        submenu = await super().create(menu_id, submenu_id, dish, background_tasks, session)
+        background_tasks.add_task(CachedDishService.clear_list_cache)
+        background_tasks.add_task(CachedSubmenuService.clear_list_cache)
+        background_tasks.add_task(CachedMenuService.clear_list_cache)
         return submenu
 
     async def update(
@@ -105,19 +107,20 @@ class CachedDishService(DishService[DishResponseType]):
         submenu_id: UUID,
         dish_id: UUID,
         updated_dish: Dish,
+        background_tasks: BackgroundTasks,
         session: AsyncSession,
     ) -> DishResponseType:
-        dish = await super().update(menu_id, submenu_id, dish_id, updated_dish, session)
-        await CachedDishService.clear_cache(dish_id)
+        dish = await super().update(menu_id, submenu_id, dish_id, updated_dish, background_tasks, session)
+        background_tasks.add_task(CachedDishService.clear_cache, dish_id)
         return dish
 
     async def delete(
-        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, session: AsyncSession
+        self, menu_id: UUID, submenu_id: UUID, dish_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> DeletionResponse:
-        response = await super().delete(menu_id, submenu_id, dish_id, session)
-        await CachedDishService.clear_cache(dish_id)
-        await CachedSubmenuService.clear_cache(submenu_id)
-        await CachedMenuService.clear_cache(menu_id)
+        response = await super().delete(menu_id, submenu_id, dish_id, background_tasks, session)
+        background_tasks.add_task(CachedDishService.clear_cache, dish_id)
+        background_tasks.add_task(CachedSubmenuService.clear_cache, submenu_id)
+        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
         return response
 
     @staticmethod
