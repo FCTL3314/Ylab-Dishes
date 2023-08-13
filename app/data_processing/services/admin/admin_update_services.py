@@ -11,7 +11,7 @@ from app.models import Dish, Menu, Submenu
 from app.utils import is_valid_uuid
 
 
-class BaseAdminService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
+class BaseAdminUpdateService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepositoryType]):
     visited_ids: set[str] = set()
 
     def __init__(self, repository: AdminServicesRepositoryType):
@@ -31,7 +31,7 @@ class BaseAdminService(AdminWorksheetMixin, ABC, Generic[AdminServicesRepository
         ...
 
 
-class AdminMenuService(BaseAdminService, Generic[AdminServicesRepositoryType]):
+class AdminMenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesRepositoryType]):
     id_index = 0
     title_index = 1
     description_index = 2
@@ -77,7 +77,7 @@ class AdminMenuService(BaseAdminService, Generic[AdminServicesRepositoryType]):
         await self.repository.update(menu, updated_menu, session, commit=False)
 
 
-class AdminSubmenuService(BaseAdminService, Generic[AdminServicesRepositoryType]):
+class AdminSubmenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesRepositoryType]):
     id_index = 1
     title_index = 2
     description_index = 3
@@ -86,8 +86,8 @@ class AdminSubmenuService(BaseAdminService, Generic[AdminServicesRepositoryType]
 
     async def _create_missing_objects(self, session: AsyncSession):
         for row in self.worksheet.iter_rows(values_only=True):
-            if AdminMenuService.is_menu_row(row):
-                self.last_menu_id = row[AdminMenuService.id_index]
+            if AdminMenuUpdateService.is_menu_row(row):
+                self.last_menu_id = row[AdminMenuUpdateService.id_index]
             elif self.is_submenu_row(row):
                 await self._handle(row, session)
         await session.commit()
@@ -129,7 +129,7 @@ class AdminSubmenuService(BaseAdminService, Generic[AdminServicesRepositoryType]
         await self.repository.update(submenu, updated_submenu, session, commit=False)
 
 
-class AdminDishService(BaseAdminService, Generic[AdminServicesRepositoryType]):
+class AdminDishUpdateService(BaseAdminUpdateService, Generic[AdminServicesRepositoryType]):
     id_index = 2
     title_index = 3
     description_index = 4
@@ -140,10 +140,10 @@ class AdminDishService(BaseAdminService, Generic[AdminServicesRepositoryType]):
 
     async def _create_missing_objects(self, session: AsyncSession):
         for row in self.worksheet.iter_rows(values_only=True):
-            if AdminMenuService.is_menu_row(row):
-                self.last_menu_id = row[AdminMenuService.id_index]
-            elif AdminSubmenuService.is_submenu_row(row):
-                self.last_submenu_id = row[AdminSubmenuService.id_index]
+            if AdminMenuUpdateService.is_menu_row(row):
+                self.last_menu_id = row[AdminMenuUpdateService.id_index]
+            elif AdminSubmenuUpdateService.is_submenu_row(row):
+                self.last_submenu_id = row[AdminSubmenuUpdateService.id_index]
             elif self.is_dish_row(row):
                 await self._handle(row, session)
         await session.commit()
