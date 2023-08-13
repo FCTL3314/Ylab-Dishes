@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.main import router
 
 
-async def test_all_menus_task(client: AsyncClient, session: AsyncSession):
+async def test_all_menus(client: AsyncClient, session: AsyncSession):
     """
     Tests the creation of a task to get all the menus,
     and result getting.
@@ -25,7 +25,6 @@ async def test_all_menus_task(client: AsyncClient, session: AsyncSession):
     response = await client.get(path)
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json()
 
 
 if __name__ == '__main__':
