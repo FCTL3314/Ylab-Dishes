@@ -17,7 +17,7 @@ router = APIRouter()
     tags=[DATA_PROCESSING_TAG],
     response_model=list[MenuNestedResponse],
 )
-async def menus_with_attachments_list(
+async def all_menus_list(
         task_id: str,
         all_menus_service: AllMenusService = ActiveAllMenusService,
 ) -> list[MenuNestedResponse]:
@@ -31,7 +31,7 @@ async def menus_with_attachments_list(
     status_code=HTTPStatus.CREATED,
     response_model=TaskCreated,
 )
-async def menus_with_attachments_task_create(
+async def all_menus_task_create(
         all_menus_service: AllMenusService = ActiveAllMenusService,
 ) -> TaskCreated:
     return await all_menus_service.create_task()

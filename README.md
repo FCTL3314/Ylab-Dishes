@@ -58,7 +58,6 @@
 
 # ❕ Peculiarities
 1. Для прохождения Postman тестов необходимо закоментировать Celery задачу синхронизирующую бд с Excel файлом:
-     * **app.data_processing.tasks | line 26**
      * **app.celery | line 14**
 
 

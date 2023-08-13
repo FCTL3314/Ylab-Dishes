@@ -12,6 +12,9 @@ from app.submenu.repository import SubmenuRepository
 
 
 class AdminDependencies(Injector):
+    """
+    AdminService with menu, submenu and dish, admin update services.
+    """
     admin_service = AdminService
     update_services = [
         AdminMenuUpdateService[MenuRepository](MenuRepository()),

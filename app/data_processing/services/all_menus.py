@@ -13,8 +13,14 @@ TaskResultType = TypeVar('TaskResultType')
 
 
 class AllMenusService(AbstractBackgroundService, Generic[TaskResultType]):
+    """
+    Service for getting all menus with all nested submenus and dishes.
+    """
 
     async def get_task_result(self, task_id: str) -> TaskResultType:
+        """
+        Returns the result of the task if the task is ready.
+        """
         task = celery.AsyncResult(task_id)
         if task.ready():
             return pickle.loads(task.result)
@@ -24,5 +30,6 @@ class AllMenusService(AbstractBackgroundService, Generic[TaskResultType]):
         )
 
     async def create_task(self) -> TaskCreated:
+        """Creates a task to get all menus."""
         task = self.task_function.delay()
         return TaskCreated(task_id=task.id)

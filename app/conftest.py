@@ -37,6 +37,10 @@ app.dependency_overrides[get_async_session] = override_get_async_session
 
 @pytest.fixture(autouse=True, scope='session')
 async def prepare_database() -> AsyncGenerator:
+    """
+    Creates the test database when tests run, deletes
+    when tests finished.
+    """
     async with test_async_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield
@@ -59,11 +63,15 @@ async def session() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest.fixture(scope='session')
 async def client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url='http://test') as ac:
-        yield ac
+    async with AsyncClient(app=app, base_url='http://test') as async_client:
+        yield async_client
 
 
 async def create_test_object(model_path: str, session: AsyncSession, **kwargs) -> SQLModel:
+    """
+    Creates a test object that will be deleted when
+    the test is complete.
+    """
     obj = mixer.blend(model_path, **kwargs)
     session.add(obj)
     await session.commit()
@@ -99,4 +107,7 @@ async def dish(submenu: Submenu, session: AsyncSession) -> AsyncGenerator[SQLMod
 
 @pytest.fixture(autouse=True)
 async def clear_cache() -> None:
+    """
+    Clear all cache before each test run.
+    """
     await redis.flushall()

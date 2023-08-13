@@ -9,6 +9,10 @@ from app.main import router
 
 
 async def test_all_menus_task(client: AsyncClient, session: AsyncSession):
+    """
+    Tests the creation of a task to get all the menus,
+    and result getting.
+    """
     path = router.url_path_for('all-menus:create-task')
     response = await client.post(path)
     task_id = response.json()['task_id']

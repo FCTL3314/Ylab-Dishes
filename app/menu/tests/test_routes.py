@@ -81,6 +81,10 @@ async def test_menu_delete(menu: Menu, client: AsyncClient, session: AsyncSessio
 
 
 async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
+    """
+    Checks whether the number of menu-related submenus
+    and dishes is displayed correctly.
+    """
     menu_retrieve = await client.get(
         router.url_path_for('menu:retrieve', menu_id=dish.submenu.menu_id),
     )

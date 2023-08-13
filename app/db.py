@@ -30,6 +30,9 @@ async def get_async_session() -> AsyncGenerator:
 
 @asynccontextmanager
 async def scoped_session():
+    """
+    Scoped session to run asynchronous tasks in Celery.
+    """
     scoped_factory = async_scoped_session(
         async_session_maker,
         scopefunc=current_task,

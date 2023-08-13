@@ -92,6 +92,10 @@ async def test_submenu_delete(
 
 
 async def test_counting(dish: Dish, client: AsyncClient, session: AsyncSession):
+    """
+    Checks whether the number of submenu-related
+    dishes is displayed correctly.
+    """
     path = router.url_path_for(
         'submenu:retrieve',
         menu_id=dish.submenu.menu_id,
