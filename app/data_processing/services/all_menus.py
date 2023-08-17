@@ -15,11 +15,11 @@ class AllMenusService(AbstractListService):
         return await menu_nested_service().list(session, scalar=True)
 
 
-class CachedAllMenusService(AbstractListService):
+class CachedAllMenusService(AllMenusService):
 
     async def list(self, session: AsyncSession) -> list[MenuNestedResponse]:
         return await get_cached_data_or_set_new(
             key=ALL_MENUS_CACHE_KEY,
-            callback=lambda: super(CachedAllMenusService, self).list(),
+            callback=lambda: super(CachedAllMenusService, self).list(session),
             expiration=ALL_MENUS_CACHE_TIME,
         )
