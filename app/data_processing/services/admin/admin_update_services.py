@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Generic
+from uuid import UUID
 
 from openpyxl.reader.excel import load_workbook
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Config
 from app.data_processing.services.admin import AdminServicesRepositoryType
+from app.dish.cache import clear_dish_cache, clear_dish_list_cache
+from app.menu.cache import clear_menu_cache, clear_menu_list_cache
 from app.models import Dish, Menu, Submenu
+from app.submenu.cache import clear_submenu_cache, clear_submenu_list_cache
 from app.utils import is_valid_uuid
 
 
@@ -77,6 +81,7 @@ class AdminMenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesReposi
             description=row[self.description_index],
         )
         await self.repository.create(menu, session, commit=False)
+        await clear_menu_list_cache()
 
     async def _update_menu(self, row: tuple, menu, session: AsyncSession):
         updated_menu = Menu(
@@ -84,6 +89,7 @@ class AdminMenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesReposi
             description=row[self.description_index]
         )
         await self.repository.update(menu, updated_menu, session, commit=False)
+        await clear_menu_cache(menu.id)
 
     async def _delete_irrelevant_objects(self, session: AsyncSession):
         menus = await self.repository.all(session, scalar=True)
@@ -120,6 +126,8 @@ class AdminSubmenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesRep
             menu_id=self.last_menu_id
         )
         await self.repository.create(self.last_menu_id, submenu, session, commit=False)
+        await clear_submenu_list_cache(UUID(self.last_menu_id))
+        await clear_menu_cache(UUID(self.last_menu_id))
 
     async def _update_submenu(self, row: tuple, submenu, session: AsyncSession):
         updated_submenu = Submenu(
@@ -127,6 +135,7 @@ class AdminSubmenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesRep
             description=row[self.description_index],
         )
         await self.repository.update(submenu, updated_submenu, session, commit=False)
+        await clear_submenu_cache(UUID(self.last_menu_id), row[self.id_index])
 
     async def _delete_irrelevant_objects(self, session: AsyncSession):
         submenus = await self.repository.all(self.last_menu_id, session, scalar=True)
@@ -174,6 +183,9 @@ class AdminDishUpdateService(BaseAdminUpdateService, Generic[AdminServicesReposi
             submenu_id=self.last_submenu_id,
         )
         await self.repository.create(self.last_submenu_id, dish, session, commit=False)
+        await clear_dish_list_cache(UUID(self.last_menu_id), row[self.id_index])
+        await clear_submenu_list_cache(UUID(self.last_menu_id))
+        await clear_menu_list_cache()
 
     async def _update_dish(self, row: tuple, dish, session: AsyncSession):
         updated_dish = Dish(
@@ -181,6 +193,7 @@ class AdminDishUpdateService(BaseAdminUpdateService, Generic[AdminServicesReposi
             description=row[self.description_index],
         )
         await self.repository.update(dish, updated_dish, session, commit=False)
+        await clear_dish_cache(UUID(self.last_menu_id), UUID(self.last_submenu_id), row[self.id_index])
 
     async def _delete_irrelevant_objects(self, session: AsyncSession):
         dishes = await self.repository.all(
