@@ -62,7 +62,7 @@
 2. Эндпоинт для получения всех меню со всеми связанными подменю и блюдами реализован через фоновую Celery задачу.
      * **api/v1/data-processing/all/** - Создаёт фоновую задачу и возвращает её id.
      * **/api/v1/data-processing/all/{task_id}/** - Позволяет получить результат выполнения задачи по её id если она готова.
-3. Сервисы синхронизации Execl файла с базой данных находятся в следующих дирректориях:
+3. Сервисы синхронизации Excel файла с базой данных находятся в следующих дирректориях:
      * **app.data_processing.dependencies.admin**
      * **app.data_processing.services.admin_service**
      * **app.data_processing.services.admin_update_services**
