@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.services import AbstractListService
+from app.data_processing.constants import ALL_MENUS_CACHE_KEY, ALL_MENUS_CACHE_TIME
 from app.menu.dependencies import menu_nested_service
 from app.menu.schemas import MenuNestedResponse
-
-TASK_NOT_FOUND_MESSAGE = 'Task not found or still being processing.'
+from app.redis import get_cached_data_or_set_new
 
 
 class AllMenusService(AbstractListService):
@@ -13,3 +13,13 @@ class AllMenusService(AbstractListService):
     """
     async def list(self, session: AsyncSession) -> list[MenuNestedResponse]:
         return await menu_nested_service().list(session, scalar=True)
+
+
+class CachedAllMenusService(AbstractListService):
+
+    async def list(self, session: AsyncSession) -> list[MenuNestedResponse]:
+        return await get_cached_data_or_set_new(
+            key=ALL_MENUS_CACHE_KEY,
+            callback=lambda: super(CachedAllMenusService, self).list(),
+            expiration=ALL_MENUS_CACHE_TIME,
+        )

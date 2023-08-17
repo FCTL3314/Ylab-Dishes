@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.dependencies import ActiveSession
 from app.common.services import AbstractListService
-from app.data_processing.constraints import DATA_PROCESSING_TAG
+from app.data_processing.constants import DATA_PROCESSING_TAG
 from app.data_processing.dependencies.all_menus_service import ActiveAllMenusService
 from app.menu.schemas import MenuNestedResponse
 
@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get(
-    '/all/',
+    '/all',
     name='all-menus:list',
     tags=[DATA_PROCESSING_TAG],
     response_model=list[MenuNestedResponse],

@@ -1,0 +1,3 @@
+ALL_MENUS_CACHE_KEY = 'all-menus'
+ALL_MENUS_CACHE_TIME = 60 * 60
+DATA_PROCESSING_TAG = 'Data processing'

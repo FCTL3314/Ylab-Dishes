@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
+from app.menu.cache import clear_menu_cache, clear_menu_list_cache
 from app.menu.constants import MENU_CACHE_TEMPLATE, MENUS_CACHE_KEY, MENUS_CACHE_TIME
 from app.menu.schemas import MenuBase
 from app.models import Menu
-from app.redis import get_cached_data_or_set_new, redis
+from app.redis import get_cached_data_or_set_new
 from app.utils import is_obj_exists_or_404
 
 MENU_NOT_FOUND_MESSAGE = 'menu not found'
@@ -75,30 +76,17 @@ class CachedMenuService(MenuService[MenuResponseType]):
         self, menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
         _menu = await super().create(menu, background_tasks, session)
-        background_tasks.add_task(CachedMenuService.clear_list_cache)
+        background_tasks.add_task(clear_menu_list_cache)
         return _menu
 
     async def update(
         self, menu_id: UUID, updated_menu: Menu, background_tasks: BackgroundTasks, session: AsyncSession
     ) -> MenuResponseType:
         _updated_menu = await super().update(menu_id, updated_menu, background_tasks, session)
-        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
+        background_tasks.add_task(clear_menu_cache, menu_id)
         return _updated_menu
 
     async def delete(self, menu_id: UUID, background_tasks: BackgroundTasks, session: AsyncSession) -> DeletionResponse:
         response = await super().delete(menu_id, background_tasks, session)
-        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
+        background_tasks.add_task(clear_menu_cache, menu_id)
         return response
-
-    @staticmethod
-    async def clear_retrieve_cache(menu_id: UUID) -> None:
-        await redis.unlink(MENU_CACHE_TEMPLATE.format(id=menu_id))
-
-    @staticmethod
-    async def clear_list_cache() -> None:
-        await redis.unlink(MENUS_CACHE_KEY)
-
-    @classmethod
-    async def clear_cache(cls, menu_id: UUID) -> None:
-        await cls.clear_retrieve_cache(menu_id)
-        await cls.clear_list_cache()

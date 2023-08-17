@@ -6,13 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import DeletionResponse
 from app.common.services import AbstractCRUDService
+from app.menu.cache import clear_menu_cache
 from app.menu.repository import MenuRepository
-from app.menu.services import MENU_NOT_FOUND_MESSAGE, CachedMenuService
+from app.menu.services import MENU_NOT_FOUND_MESSAGE
 from app.models import Submenu
-from app.redis import get_cached_data_or_set_new, redis
+from app.redis import get_cached_data_or_set_new
+from app.submenu.cache import clear_submenu_cache, clear_submenu_list_cache
 from app.submenu.constants import (
     SUBMENU_CACHE_TEMPLATE,
-    SUBMENUS_CACHE_KEY,
+    SUBMENUS_CACHE_TEMPLATE,
     SUBMENUS_CACHE_TIME,
 )
 from app.submenu.schemas import SubmenuBase
@@ -86,7 +88,7 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         self, menu_id: UUID, session: AsyncSession
     ) -> list[SubmenuResponseType]:
         submenus = await get_cached_data_or_set_new(
-            key=SUBMENUS_CACHE_KEY,
+            key=SUBMENUS_CACHE_TEMPLATE.format(menu_id=menu_id),
             callback=lambda: super(CachedSubmenuService, self).list(menu_id, session),
             expiration=SUBMENUS_CACHE_TIME,
         )
@@ -98,8 +100,8 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         _submenu = await super().create(
             menu_id, submenu, background_tasks, session
         )
-        background_tasks.add_task(CachedSubmenuService.clear_list_cache)
-        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
+        background_tasks.add_task(clear_submenu_list_cache, menu_id)
+        background_tasks.add_task(clear_menu_cache, menu_id)
         return _submenu
 
     async def update(
@@ -113,7 +115,7 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         _updated_submenu = await super().update(
             menu_id, submenu_id, updated_submenu, background_tasks, session
         )
-        background_tasks.add_task(CachedSubmenuService.clear_cache, submenu_id)
+        background_tasks.add_task(clear_submenu_cache, menu_id, submenu_id)
         return _updated_submenu
 
     async def delete(
@@ -122,19 +124,6 @@ class CachedSubmenuService(SubmenuService[SubmenuResponseType]):
         response = await super().delete(
             menu_id, submenu_id, background_tasks, session
         )
-        background_tasks.add_task(CachedSubmenuService.clear_cache, submenu_id)
-        background_tasks.add_task(CachedMenuService.clear_cache, menu_id)
+        background_tasks.add_task(clear_submenu_cache, menu_id, submenu_id)
+        background_tasks.add_task(clear_menu_cache, menu_id)
         return response
-
-    @staticmethod
-    async def clear_retrieve_cache(submenu_id: UUID) -> None:
-        await redis.unlink(SUBMENU_CACHE_TEMPLATE.format(id=submenu_id))
-
-    @staticmethod
-    async def clear_list_cache() -> None:
-        await redis.unlink(SUBMENUS_CACHE_KEY)
-
-    @classmethod
-    async def clear_cache(cls, submenu_id: UUID) -> None:
-        await cls.clear_retrieve_cache(submenu_id)
-        await cls.clear_list_cache()
