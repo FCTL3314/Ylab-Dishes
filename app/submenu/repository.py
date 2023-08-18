@@ -63,9 +63,9 @@ class SubmenuRepository(AbstractCRUDRepository):
         return await self.get(submenu.menu_id, submenu.id, session)  # type: ignore
 
     async def delete(self, submenu: Submenu, session: AsyncSession, commit: bool = True) -> None:
+        await session.delete(submenu)
         if commit is True:
-            await session.delete(submenu)
-        await session.commit()
+            await session.commit()
 
 
 class SubmenuWithCountingRepository(SubmenuRepository):

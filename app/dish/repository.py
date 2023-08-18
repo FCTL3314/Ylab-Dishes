@@ -82,6 +82,6 @@ class DishRepository(AbstractCRUDRepository):
 
     @staticmethod
     async def delete(dish: Dish, session: AsyncSession, commit: bool = True) -> None:
+        await session.delete(dish)
         if commit is True:
-            await session.delete(dish)
-        await session.commit()
+            await session.commit()

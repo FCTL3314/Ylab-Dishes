@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic
 
 from openpyxl.reader.excel import load_workbook
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Config
@@ -129,8 +130,8 @@ class AdminSubmenuUpdateService(BaseAdminUpdateService, Generic[AdminServicesRep
         await self.repository.update(submenu, updated_submenu, session, commit=False)
 
     async def _delete_irrelevant_objects(self, session: AsyncSession):
-        submenus = await self.repository.all(self.last_menu_id, session, scalar=True)
-        for submenu in submenus:
+        submenus = await session.execute(select(Submenu))
+        for submenu in submenus.scalars().all():
             if str(submenu.id) not in self.visited_ids:
                 await self.repository.delete(submenu, session, commit=False)
         self.visited_ids = set()
@@ -183,13 +184,8 @@ class AdminDishUpdateService(BaseAdminUpdateService, Generic[AdminServicesReposi
         await self.repository.update(dish, updated_dish, session, commit=False)
 
     async def _delete_irrelevant_objects(self, session: AsyncSession):
-        dishes = await self.repository.all(
-            self.last_menu_id,
-            self.last_submenu_id,
-            session,
-            scalar=True,
-        )
-        for dish in dishes:
+        dishes = await session.execute(select(Dish))
+        for dish in dishes.scalars().all():
             if str(dish.id) not in self.visited_ids:
                 await self.repository.delete(dish, session, commit=False)
         self.visited_ids = set()
